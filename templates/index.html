@@ -402,29 +402,6 @@
     .picker-row { display: flex; gap: .75rem; align-items: center; flex-wrap: wrap; }
     .picker-row select { flex: 1; min-width: 220px; }
 
-    /* ---- Canvas API section ---- */
-    .canvas-api-toggle {
-      display: flex;
-      align-items: center;
-      gap: .5rem;
-      font-size: .875rem;
-      font-weight: 600;
-      color: var(--blue);
-      cursor: pointer;
-      user-select: none;
-      padding: .5rem 0;
-    }
-    .canvas-api-toggle .arrow { font-size: .65rem; transition: transform .15s; }
-    .canvas-api-toggle.open .arrow { transform: rotate(90deg); }
-    .canvas-api-body { display: none; margin-top: .75rem; }
-
-    .match-table { width: 100%; border-collapse: collapse; font-size: .8rem; margin-top: .75rem; }
-    .match-table th {
-      background: var(--gray-100); padding: .4rem .75rem;
-      text-align: left; font-weight: 700; color: var(--gray-700);
-      border-bottom: 1px solid var(--gray-200);
-    }
-    .match-table td { padding: .4rem .75rem; border-bottom: 1px solid var(--gray-100); vertical-align: top; }
     .match-ok   { color: var(--green); font-weight: 700; }
     .match-warn { color: var(--yellow); font-weight: 700; }
 
@@ -571,6 +548,57 @@
     .session-table tr:last-child td { border-bottom: none; }
     .session-score { font-weight: 700; }
 
+  /* ---- Canvas integration section ---- */
+  .canvas-section {
+    border: 1px solid #bfdbfe;
+    border-radius: 8px;
+    padding: 1rem 1.25rem;
+    background: var(--blue-light);
+  }
+  .canvas-section-label {
+    font-size: .7rem;
+    font-weight: 700;
+    color: var(--blue);
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    margin-bottom: .75rem;
+  }
+  .canvas-load-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr auto;
+    gap: .75rem;
+    align-items: flex-end;
+  }
+  @media (max-width: 600px) { .canvas-load-row { grid-template-columns: 1fr; } }
+  #canvas-assignment-row { margin-top: .75rem; }
+  #canvas-assignment-dropdown { max-width: 100%; }
+
+  /* ---- Criteria preview table (rubric from Canvas) ---- */
+  .criteria-preview-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: .875rem;
+    border: 1px solid var(--gray-200);
+    border-radius: 6px;
+    overflow: hidden;
+  }
+  .criteria-preview-table th {
+    background: var(--gray-100);
+    padding: .4rem .875rem;
+    font-weight: 700;
+    color: var(--gray-700);
+    text-align: left;
+    border-bottom: 2px solid var(--gray-200);
+  }
+  .criteria-preview-table th:last-child { text-align: right; }
+  .criteria-preview-table td {
+    padding: .5rem .875rem;
+    border-bottom: 1px solid var(--gray-100);
+    vertical-align: top;
+  }
+  .criteria-preview-table tr:last-child td { border-bottom: none; }
+  .criteria-preview-table td:last-child { text-align: right; font-weight: 600; color: var(--gray-700); white-space: nowrap; }
+
   /* ---- Source viewer ---- */
   .source-panel {
     border: 1px solid var(--gray-200);
@@ -670,67 +698,61 @@
           </div>
         </div>
 
+        <!-- Canvas integration -->
+        <div class="canvas-section">
+          <div class="canvas-section-label">Canvas</div>
+          <div class="canvas-load-row">
+            <div>
+              <label>API Token <span class="hint">(Account Settings → New Access Token)</span></label>
+              <input type="password" id="canvas-token" placeholder="token...">
+            </div>
+            <div>
+              <label>Course ID <span class="hint">(/courses/<b>XXXXXX</b>/)</span></label>
+              <input type="text" id="canvas-course-id" placeholder="e.g. 12345">
+            </div>
+            <div>
+              <button class="btn btn-outline" id="load-assignments-btn" onclick="loadAssignments()">Load Assignments &rarr;</button>
+            </div>
+          </div>
+          <div id="canvas-load-status" style="margin-top:.5rem; font-size:.875rem"></div>
+          <div id="canvas-assignment-row" style="display:none">
+            <label>Assignment</label>
+            <select id="canvas-assignment-dropdown" onchange="selectAssignment(this.value)">
+              <option value="">-- Select an assignment --</option>
+            </select>
+          </div>
+        </div>
+
         <div>
-          <label>Assignment Description <span class="hint">(paste from Canvas or write your own)</span></label>
+          <label>Assignment Description <span class="hint">(auto-filled from Canvas, or type manually)</span></label>
           <textarea id="assignment-description" rows="4"
             placeholder="Describe what students were asked to build. E.g. 'Build a single-page layout using Flexbox and CSS Grid, including a header, nav, sidebar, main content with profile cards, and a footer.'"></textarea>
         </div>
 
-        <div>
+        <!-- Rubric — Canvas criteria view (shown after assignment selected) -->
+        <div id="rubric-canvas-view" style="display:none">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:.5rem">
+            <label style="margin:0">Rubric <span class="hint">— loaded from Canvas</span></label>
+            <button class="btn btn-outline btn-sm" onclick="switchToRubricText()">Edit as text &darr;</button>
+          </div>
+          <table class="criteria-preview-table">
+            <thead><tr><th>Criterion</th><th>Max pts</th></tr></thead>
+            <tbody id="rubric-preview-tbody"></tbody>
+          </table>
+        </div>
+
+        <!-- Rubric — manual text view -->
+        <div id="rubric-manual-view">
           <label>Rubric <span class="hint">(paste directly from Canvas — the tool will parse it)</span></label>
           <textarea id="rubric" rows="10" class="input-mono"
             placeholder="Paste your Canvas rubric here. Example:&#10;&#10;This criterion is linked to a Learning Outcome&#10;HTML page has a HEADER with a title&#10;This area will be used by the assessor to leave comments...&#10;5 pts&#10;&#10;..."></textarea>
         </div>
 
-        <div class="form-row">
-          <div>
-            <label>Canvas Gradebook CSV <span class="hint">(optional — enables Canvas export)</span></label>
-            <div class="canvas-upload-row">
-              <input type="file" id="canvas-csv-file" accept=".csv" onchange="handleCanvasFile(this)">
-              <span id="canvas-csv-status" class="canvas-status"></span>
-            </div>
-          </div>
-          <div>
-            <label>Submissions Folder <span class="hint">(select all .html files — pre-fills student URLs)</span></label>
-            <div class="canvas-upload-row">
-              <input type="file" id="submissions-files" accept=".html" multiple onchange="handleSubmissionsFiles(this)">
-              <span id="submissions-status" class="canvas-status"></span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Canvas API (optional) -->
         <div>
-          <div class="canvas-api-toggle" id="canvas-api-toggle" onclick="toggleCanvasAPI()">
-            <span class="arrow">&#9658;</span> Canvas API — push rubric grades directly to SpeedGrader <span class="hint">(optional)</span>
-          </div>
-          <div class="canvas-api-body" id="canvas-api-body">
-            <div class="form-row">
-              <div>
-                <label>Canvas API Token <span class="hint">(Account Settings → New Access Token)</span></label>
-                <input type="password" id="canvas-token" placeholder="token...">
-              </div>
-              <div>
-                <label>Course ID <span class="hint">(from Canvas URL: /courses/<b>XXXXXX</b>/)</span></label>
-                <input type="text" id="canvas-course-id" placeholder="e.g. 12345">
-              </div>
-            </div>
-            <div class="form-row">
-              <div>
-                <label>Assignment ID <span class="hint">(from Canvas URL: /assignments/<b>XXXXXX</b>)</span></label>
-                <input type="text" id="canvas-assignment-id" placeholder="e.g. 67890">
-              </div>
-              <div style="display:flex; align-items:flex-end">
-                <button class="btn btn-outline" onclick="connectToCanvas()" id="canvas-connect-btn" style="width:100%">Connect to Canvas &rarr;</button>
-              </div>
-            </div>
-            <div id="canvas-connect-status" style="margin-top:.5rem"></div>
-            <div id="canvas-match-preview" style="display:none">
-              <table class="match-table">
-                <thead><tr><th>Our Criterion</th><th>Canvas Criterion</th><th>Pts</th><th></th></tr></thead>
-                <tbody id="canvas-match-body"></tbody>
-              </table>
-            </div>
+          <label>Canvas Gradebook CSV <span class="hint">(optional — enables score CSV export)</span></label>
+          <div class="canvas-upload-row">
+            <input type="file" id="canvas-csv-file" accept=".csv" onchange="handleCanvasFile(this)">
+            <span id="canvas-csv-status" class="canvas-status"></span>
           </div>
         </div>
 
@@ -978,27 +1000,55 @@
     const desc   = document.getElementById('assignment-description').value.trim();
     const rubric = document.getElementById('rubric').value.trim();
     const crawl  = document.getElementById('crawl-pages').checked;
+    const usingCanvasRubric = document.getElementById('rubric-canvas-view').style.display !== 'none';
 
     if (!apiKey) return alert('Please enter your Anthropic API key.');
     if (!desc)   return alert('Please enter an assignment description.');
-    if (!rubric) return alert('Please paste in the rubric.');
 
-    setupData = { api_key: apiKey, assignment_name: name, assignment_description: desc, rubric, crawl };
+    // Determine criteria source
+    let criteria = null;
+    if (usingCanvasRubric && setupCanvasCriteria && setupCanvasCriteria.length) {
+      criteria = setupCanvasCriteria;
+    } else if (!rubric) {
+      return alert('Please provide a rubric — either load it from Canvas or paste it manually.');
+    }
+
+    setupData = { api_key: apiKey, assignment_name: name, assignment_description: desc, rubric, criteria, crawl };
+
+    // Build batch queue from Canvas submission URLs (if available)
+    if (canvasSubmissions && Object.keys(canvasSubmissions).length) {
+      const entries = Object.entries(canvasSubmissions)
+        .filter(([, s]) => s.submitted_url)
+        .map(([uid, s]) => ({
+          canvas_id: uid,
+          url: s.submitted_url,
+          is_late: s.is_late || false,
+          student: { id: uid, name: s.user_name || `Student ${uid}` },
+          result: null,
+          approved: false,
+        }));
+      if (entries.length) {
+        entries.sort((a, b) => (a.student.name || '').localeCompare(b.student.name || ''));
+        batchQueue = entries;
+        batchIndex = -1;
+      }
+    }
 
     document.getElementById('setup-form-body').style.display = 'none';
     const badge = document.getElementById('assignment-badge');
     badge.style.display = 'block';
     document.getElementById('badge-name').textContent = name || 'Unnamed Assignment';
 
-    const lines = rubric.split('\n');
-    let criCount = 0;
-    lines.forEach(l => { if (/^\d+\s*pts?$/i.test(l.trim())) criCount++; });
-    const rosterInfo = canvasRoster.length ? ` · ${canvasRoster.length} students loaded` : '';
+    const criCount = criteria ? criteria.length
+      : rubric.split('\n').filter(l => /^\d+\s*pts?$/i.test(l.trim())).length;
+    const queueNote = batchQueue.length ? ` · ${batchQueue.length} students queued` : (canvasRoster.length ? ` · ${canvasRoster.length} students` : '');
     document.getElementById('badge-meta').textContent =
-      `${criCount} criteria detected · Crawl: ${crawl ? 'on' : 'off'}${rosterInfo}`;
+      `${criCount} criteria · Crawl: ${crawl ? 'on' : 'off'}${queueNote}`;
 
     document.getElementById('edit-setup-btn').style.display = '';
     document.getElementById('grade-section').style.display = 'block';
+
+    if (batchQueue.length) renderStudentRail();
   }
 
   function editSetup() {
@@ -1479,12 +1529,120 @@ This area will be used by the assessor to leave comments related to this criteri
   let criterionMap = {};        // {our_criterion_name: canvas_criterion_id}
   let canvasSubmissions = {};   // {canvas_user_id: {graded, score, rubric_assessed}}
 
-  function toggleCanvasAPI() {
-    const toggle = document.getElementById('canvas-api-toggle');
-    const body   = document.getElementById('canvas-api-body');
-    const open   = body.style.display === 'block';
-    body.style.display = open ? 'none' : 'block';
-    toggle.classList.toggle('open', !open);
+  // ---------- Canvas: load assignments + auto-fill setup ----------
+  let setupCanvasCriteria = null;  // [{name, max_points}] from the selected assignment
+
+  async function loadAssignments() {
+    const token     = document.getElementById('canvas-token').value.trim();
+    const course_id = document.getElementById('canvas-course-id').value.trim();
+    if (!token || !course_id) return alert('Enter your Canvas API token and Course ID first.');
+
+    const btn      = document.getElementById('load-assignments-btn');
+    const statusEl = document.getElementById('canvas-load-status');
+    btn.disabled = true;
+    btn.textContent = 'Loading…';
+    statusEl.innerHTML = '';
+
+    try {
+      const res = await fetch('/api/canvas/assignments', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token, course_id }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        statusEl.innerHTML = `<span style="color:var(--red)">${escHtml(data.error)}</span>`;
+        return;
+      }
+
+      const select = document.getElementById('canvas-assignment-dropdown');
+      select.innerHTML = '<option value="">-- Select an assignment --</option>';
+      data.assignments.forEach(a => {
+        const opt = document.createElement('option');
+        opt.value = a.id;
+        const due = a.due_at ? ` — due ${new Date(a.due_at).toLocaleDateString()}` : '';
+        const rubricFlag = a.has_rubric ? ' ✓' : '';
+        opt.textContent = `${a.name}${rubricFlag}${due}`;
+        opt.dataset.name = a.name;
+        select.appendChild(opt);
+      });
+
+      document.getElementById('canvas-assignment-row').style.display = '';
+      statusEl.innerHTML = `<span style="color:var(--green)">✓ ${data.assignments.length} assignments — select one below</span>`;
+    } catch (err) {
+      statusEl.innerHTML = `<span style="color:var(--red)">Network error: ${escHtml(err.message)}</span>`;
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Load Assignments →';
+    }
+  }
+
+  async function selectAssignment(id) {
+    if (!id) return;
+    const token     = document.getElementById('canvas-token').value.trim();
+    const course_id = document.getElementById('canvas-course-id').value.trim();
+    const statusEl  = document.getElementById('canvas-load-status');
+    statusEl.innerHTML = '<em style="color:var(--gray-500)">Loading assignment details…</em>';
+
+    const res = await fetch('/api/canvas/fetch-rubric', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token, course_id, assignment_id: id }),
+    });
+    const data = await res.json();
+
+    if (!res.ok) {
+      statusEl.innerHTML = `<span style="color:var(--red)">${escHtml(data.error)}</span>`;
+      return;
+    }
+
+    // Set canvas global state
+    canvasConfig      = { token, course_id, assignment_id: id };
+    canvasCriteria    = data.criteria;
+    canvasSubmissions = data.submissions || {};
+    // Direct 1:1 map — names come straight from Canvas
+    criterionMap = {};
+    canvasCriteria.forEach(cc => { criterionMap[cc.description] = cc.id; });
+
+    // Auto-fill name
+    const opt = document.querySelector(`#canvas-assignment-dropdown option[value="${id}"]`);
+    if (opt && opt.dataset.name) document.getElementById('assignment-name').value = opt.dataset.name;
+
+    // Auto-fill description
+    if (data.description) document.getElementById('assignment-description').value = data.description;
+
+    // Show criteria table
+    setupCanvasCriteria = data.criteria.map(c => ({ name: c.description, max_points: c.points }));
+    showRubricPreview(setupCanvasCriteria);
+
+    // Status summary
+    const withUrl      = Object.values(canvasSubmissions).filter(s => s.submitted_url).length;
+    const total        = Object.keys(canvasSubmissions).length;
+    const alreadyGraded = Object.values(canvasSubmissions).filter(s => s.graded).length;
+    let info = `✓ "${escHtml(data.assignment_name)}" · ${data.criteria.length} criteria · ${withUrl}/${total} students have URL submissions`;
+    if (alreadyGraded) info += ` · <span style="color:var(--yellow)">⚠ ${alreadyGraded} already graded in Canvas</span>`;
+    statusEl.innerHTML = `<span style="color:var(--green)">${info}</span>`;
+  }
+
+  function showRubricPreview(criteria) {
+    const tbody = document.getElementById('rubric-preview-tbody');
+    tbody.innerHTML = '';
+    criteria.forEach(c => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td>${escHtml(c.name)}</td><td>${c.max_points} pts</td>`;
+      tbody.appendChild(tr);
+    });
+    document.getElementById('rubric-canvas-view').style.display = '';
+    document.getElementById('rubric-manual-view').style.display = 'none';
+  }
+
+  function switchToRubricText() {
+    if (setupCanvasCriteria && setupCanvasCriteria.length) {
+      document.getElementById('rubric').value =
+        setupCanvasCriteria.map(c => `${c.name}\n${c.max_points} pts`).join('\n\n');
+    }
+    document.getElementById('rubric-canvas-view').style.display = 'none';
+    document.getElementById('rubric-manual-view').style.display = '';
   }
 
   function normalize(s) {
@@ -1530,75 +1688,6 @@ This area will be used by the assessor to leave comments related to this criteri
     });
 
     return map;
-  }
-
-  async function connectToCanvas() {
-    const token       = document.getElementById('canvas-token').value.trim();
-    const course_id   = document.getElementById('canvas-course-id').value.trim();
-    const assignment_id = document.getElementById('canvas-assignment-id').value.trim();
-
-    if (!token || !course_id || !assignment_id)
-      return alert('Enter your Canvas API token, Course ID, and Assignment ID.');
-
-    const statusEl = document.getElementById('canvas-connect-status');
-    statusEl.innerHTML = '<em style="color:var(--gray-500)">Connecting to Canvas…</em>';
-    document.getElementById('canvas-connect-btn').disabled = true;
-
-    const res = await fetch('/api/canvas/fetch-rubric', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ token, course_id, assignment_id }),
-    });
-    const data = await res.json();
-    document.getElementById('canvas-connect-btn').disabled = false;
-
-    if (!res.ok) {
-      statusEl.innerHTML = `<span style="color:var(--red)">${escHtml(data.error)}</span>`;
-      return;
-    }
-
-    canvasConfig      = { token, course_id, assignment_id };
-    canvasCriteria    = data.criteria;
-    canvasSubmissions = data.submissions || {};
-
-    // Build criterion map using parsed rubric (if setup is already saved, use its rubric)
-    const rubricText = document.getElementById('rubric').value;
-    let ourCriteria = [];
-    if (rubricText) {
-      // Quick client-side count — full parse happens on server; use canvas criteria as reference
-      ourCriteria = canvasCriteria.map(cc => ({ name: cc.description })); // fallback
-    }
-
-    // We'll do the real matching when grading starts (we have parsed criteria from server then)
-    // For now, show a preview using canvas criterion descriptions mapped to themselves
-    criterionMap = {};
-    canvasCriteria.forEach(cc => { criterionMap[cc.description] = cc.id; });
-
-    const alreadyGraded = Object.values(canvasSubmissions).filter(s => s.graded).length;
-    const gradedNote = alreadyGraded > 0
-      ? ` · <span style="color:var(--yellow)">⚠ ${alreadyGraded} already graded in Canvas</span>`
-      : ` · <span style="color:var(--green)">0 graded yet</span>`;
-    statusEl.innerHTML = `<span style="color:var(--green);font-weight:600">✓ Connected — "${escHtml(data.assignment_name)}" · ${canvasCriteria.length} criteria${gradedNote}</span>`;
-
-    // Re-render rail now that we have submission states
-    if (batchQueue.length) renderStudentRail();
-
-    // Show match preview table
-    const preview = document.getElementById('canvas-match-preview');
-    const tbody   = document.getElementById('canvas-match-body');
-    tbody.innerHTML = '';
-    canvasCriteria.forEach(cc => {
-      const tr = document.createElement('tr');
-      tr.innerHTML = `
-        <td>${escHtml(cc.description)}</td>
-        <td>${escHtml(cc.description)}</td>
-        <td>${cc.points}</td>
-        <td class="match-ok">&#10003;</td>
-      `;
-      tbody.appendChild(tr);
-    });
-    preview.style.display = 'block';
-    document.getElementById('canvas-push-btn').style.display = '';
   }
 
   // Called after grading to refine criterion map using actual parsed criteria names
@@ -1675,79 +1764,6 @@ This area will be used by the assessor to leave comments related to this criteri
   // ---------- Batch mode ----------
   let batchQueue = [];   // [{canvas_id, url, is_late, student, result, approved}]
   let batchIndex = -1;
-
-  async function handleSubmissionsFiles(input) {
-    const files = Array.from(input.files);
-    if (!files.length) return;
-
-    const statusEl = document.getElementById('submissions-status');
-    statusEl.textContent = `Parsing ${files.length} files…`;
-    statusEl.className = 'canvas-status';
-
-    const entries = [];
-    for (const file of files) {
-      const text = await file.text();
-      const basename = file.name;
-
-      // Parse canvas_id and late flag from filename
-      // Format: lastnamefirstname_CANVASID[_late]_link.html
-      const parts = basename.replace(/\.html$/i, '').split('_');
-      let canvas_id = null;
-      let is_late = false;
-      for (let i = 0; i < parts.length; i++) {
-        if (/^\d{5,}$/.test(parts[i])) {
-          canvas_id = parts[i];
-          is_late = parts.slice(i + 1).some(p => p.toLowerCase() === 'late');
-          break;
-        }
-      }
-      if (!canvas_id) continue;
-
-      // Extract URL — prefer <a href>, fallback to meta refresh
-      const parser = new DOMParser();
-      const doc = parser.parseFromString(text, 'text/html');
-      let url = null;
-      const a = doc.querySelector('a[href]');
-      if (a) url = a.getAttribute('href').replace(/#$/, '').trim();
-      if (!url) {
-        const meta = doc.querySelector('meta[http-equiv="Refresh"]');
-        if (meta) {
-          const m = (meta.getAttribute('content') || '').match(/url=(.+)/i);
-          if (m) url = m[1].replace(/#$/, '').trim();
-        }
-      }
-      if (!url) continue;
-
-      // Match to Canvas roster by canvas_id
-      const student = canvasRoster.find(s => s.id === canvas_id) || null;
-
-      entries.push({ canvas_id, url, is_late, student, result: null, approved: false });
-    }
-
-    if (!entries.length) {
-      statusEl.textContent = 'No valid submissions found.';
-      statusEl.className = 'canvas-status err';
-      return;
-    }
-
-    // Sort by student name (roster order) or filename
-    entries.sort((a, b) => {
-      const na = a.student?.name || a.canvas_id;
-      const nb = b.student?.name || b.canvas_id;
-      return na.localeCompare(nb);
-    });
-
-    batchQueue = entries;
-    batchIndex = -1;
-
-    const matched = entries.filter(e => e.student).length;
-    statusEl.textContent = `✓ ${entries.length} submissions · ${matched} matched to roster`;
-    statusEl.className = 'canvas-status ok';
-
-    renderStudentRail();
-    document.getElementById('student-rail-card').style.display = 'block';
-    document.getElementById('grade-section').style.display = 'block';
-  }
 
   function getCanvasSubmission(entry) {
     return entry.canvas_id ? (canvasSubmissions[entry.canvas_id] || null) : null;
@@ -1886,7 +1902,7 @@ This area will be used by the assessor to leave comments related to this criteri
   function saveSession() {
     if (!sessionGrades.length && !setupData) return alert('Nothing to save yet.');
     const snapshot = {
-      version: 1,
+      version: 2,
       saved_at: new Date().toISOString(),
       setupData: setupData ? { ...setupData, api_key: undefined } : null,
       sessionGrades,
@@ -1937,14 +1953,20 @@ This area will be used by the assessor to leave comments related to this criteri
       document.getElementById('rubric').value                 = setupData.rubric || '';
       document.getElementById('crawl-pages').checked          = setupData.crawl || false;
 
+      // If criteria were saved, show the preview table
+      if (setupData.criteria && setupData.criteria.length) {
+        setupCanvasCriteria = setupData.criteria;
+        showRubricPreview(setupCanvasCriteria);
+      }
+
       // Show badge, hide form
       document.getElementById('setup-form-body').style.display = 'none';
       document.getElementById('assignment-badge').style.display = 'block';
       document.getElementById('edit-setup-btn').style.display = '';
       document.getElementById('badge-name').textContent = setupData.assignment_name || 'Unnamed Assignment';
-      const rosterInfo = canvasRoster.length ? ` · ${canvasRoster.length} students loaded` : '';
+      const queueNote = batchQueue.length ? ` · ${batchQueue.length} students queued` : (canvasRoster.length ? ` · ${canvasRoster.length} students` : '');
       document.getElementById('badge-meta').textContent =
-        `Resumed session · ${sessionGrades.length} graded${rosterInfo}`;
+        `Resumed session · ${sessionGrades.length} graded${queueNote}`;
       document.getElementById('grade-section').style.display = 'block';
     }
 
@@ -1961,23 +1983,16 @@ This area will be used by the assessor to leave comments related to this criteri
       document.getElementById('canvas-export-btn').style.display = '';
     }
 
-    // Restore Canvas API partial config (course/assignment IDs, not token)
+    // Restore Canvas partial config (course ID — token must be re-entered)
     if (snapshot.canvasConfigPartial) {
-      document.getElementById('canvas-course-id').value   = snapshot.canvasConfigPartial.course_id || '';
-      document.getElementById('canvas-assignment-id').value = snapshot.canvasConfigPartial.assignment_id || '';
-      // Open the Canvas API section so they know to re-enter the token
-      const body = document.getElementById('canvas-api-body');
-      body.style.display = 'block';
-      document.getElementById('canvas-api-toggle').classList.add('open');
-      document.getElementById('canvas-connect-status').innerHTML =
-        '<span style="color:var(--yellow);font-weight:600">⚠ Re-enter your Canvas API token and click Connect to enable SpeedGrader push.</span>';
+      document.getElementById('canvas-course-id').value = snapshot.canvasConfigPartial.course_id || '';
+      document.getElementById('canvas-load-status').innerHTML =
+        '<span style="color:var(--yellow);font-weight:600">⚠ Resumed session — re-enter Canvas token and load assignments to re-enable SpeedGrader push.</span>';
     }
 
-    // Show Canvas push button if criteria available
+    // Show Canvas push button if criteria map available
     if (canvasCriteria.length) {
       document.getElementById('canvas-push-btn').style.display = '';
-      document.getElementById('canvas-match-preview').style.display = 'block';
-      refineCriterionMap(Object.keys(criterionMap).map(name => ({ name })));
     }
 
     // Restore batch queue
