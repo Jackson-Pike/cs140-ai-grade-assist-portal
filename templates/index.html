@@ -1,0 +1,1470 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CS 140 Assignment Grader</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --blue: #2563eb;
+      --blue-dark: #1d4ed8;
+      --blue-light: #eff6ff;
+      --green: #16a34a;
+      --green-light: #f0fdf4;
+      --red: #dc2626;
+      --red-light: #fef2f2;
+      --yellow: #d97706;
+      --yellow-light: #fffbeb;
+      --gray-50: #f9fafb;
+      --gray-100: #f3f4f6;
+      --gray-200: #e5e7eb;
+      --gray-300: #d1d5db;
+      --gray-500: #6b7280;
+      --gray-700: #374151;
+      --gray-900: #111827;
+      --radius: 10px;
+      --shadow: 0 1px 3px rgba(0,0,0,.1), 0 1px 2px rgba(0,0,0,.06);
+      --shadow-md: 0 4px 6px rgba(0,0,0,.07), 0 2px 4px rgba(0,0,0,.05);
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: var(--gray-50);
+      color: var(--gray-900);
+      min-height: 100vh;
+    }
+
+    /* ---- Header ---- */
+    .app-header {
+      background: var(--blue);
+      color: white;
+      padding: 1rem 2rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      box-shadow: var(--shadow-md);
+    }
+    .app-header h1 { font-size: 1.25rem; font-weight: 700; }
+    .app-header span { font-size: .875rem; opacity: .8; }
+    .header-badge {
+      margin-left: auto;
+      background: rgba(255,255,255,.2);
+      padding: .25rem .75rem;
+      border-radius: 999px;
+      font-size: .75rem;
+      font-weight: 600;
+    }
+
+    /* ---- Layout ---- */
+    .container {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 2rem 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+
+    /* ---- Cards ---- */
+    .card {
+      background: white;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+    .card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1rem 1.5rem;
+      border-bottom: 1px solid var(--gray-200);
+      background: var(--gray-50);
+    }
+    .card-header h2 {
+      font-size: 1rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: .5rem;
+    }
+    .step-num {
+      width: 1.5rem; height: 1.5rem;
+      background: var(--blue);
+      color: white;
+      border-radius: 50%;
+      font-size: .75rem;
+      font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .card-body { padding: 1.5rem; }
+
+    /* ---- Form elements ---- */
+    .form-grid { display: flex; flex-direction: column; gap: 1rem; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+    label {
+      display: block;
+      font-size: .875rem;
+      font-weight: 600;
+      color: var(--gray-700);
+      margin-bottom: .375rem;
+    }
+    label .hint {
+      font-weight: 400;
+      color: var(--gray-500);
+      font-size: .8rem;
+    }
+    input[type=text], input[type=url], input[type=password], textarea, select {
+      width: 100%;
+      padding: .625rem .875rem;
+      border: 1px solid var(--gray-300);
+      border-radius: 7px;
+      font-size: .9rem;
+      font-family: inherit;
+      color: var(--gray-900);
+      transition: border-color .15s, box-shadow .15s;
+      background: white;
+    }
+    input:focus, textarea:focus {
+      outline: none;
+      border-color: var(--blue);
+      box-shadow: 0 0 0 3px rgba(37,99,235,.15);
+    }
+    textarea { resize: vertical; line-height: 1.5; }
+    .input-mono { font-family: "SFMono-Regular", Consolas, monospace; font-size: .825rem; }
+
+    /* ---- Checkbox row ---- */
+    .checkbox-row {
+      display: flex;
+      align-items: center;
+      gap: .5rem;
+      font-size: .875rem;
+      color: var(--gray-700);
+    }
+    .checkbox-row input[type=checkbox] { width: 1rem; height: 1rem; accent-color: var(--blue); }
+
+    /* ---- Buttons ---- */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: .4rem;
+      padding: .625rem 1.25rem;
+      border: none;
+      border-radius: 7px;
+      font-size: .9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background .15s, opacity .15s;
+    }
+    .btn:disabled { opacity: .5; cursor: not-allowed; }
+    .btn-primary { background: var(--blue); color: white; }
+    .btn-primary:hover:not(:disabled) { background: var(--blue-dark); }
+    .btn-success { background: var(--green); color: white; }
+    .btn-success:hover:not(:disabled) { background: #15803d; }
+    .btn-outline {
+      background: white;
+      color: var(--gray-700);
+      border: 1px solid var(--gray-300);
+    }
+    .btn-outline:hover:not(:disabled) { background: var(--gray-50); }
+    .btn-sm { padding: .375rem .75rem; font-size: .8rem; }
+    .btn-row { display: flex; gap: .75rem; align-items: center; flex-wrap: wrap; margin-top: .5rem; }
+
+    /* ---- Assignment badge (shown after setup) ---- */
+    #assignment-badge {
+      display: none;
+      background: var(--blue-light);
+      border: 1px solid #bfdbfe;
+      border-radius: 8px;
+      padding: 1rem 1.25rem;
+      font-size: .875rem;
+    }
+    #assignment-badge .badge-name { font-weight: 700; font-size: 1rem; color: var(--blue-dark); }
+    #assignment-badge .badge-meta { color: var(--gray-500); margin-top: .25rem; }
+
+    /* ---- Grading section ---- */
+    #grade-section { display: none; }
+    .url-row { display: flex; gap: .75rem; align-items: flex-end; }
+    .url-row > div:first-child { flex: 1; }
+
+    /* ---- Spinner ---- */
+    #loading {
+      display: none;
+      align-items: center;
+      gap: .75rem;
+      padding: 1rem;
+      background: var(--blue-light);
+      border-radius: 8px;
+      font-size: .9rem;
+      color: var(--blue-dark);
+      margin-top: 1rem;
+    }
+    .spinner {
+      width: 1.25rem; height: 1.25rem;
+      border: 3px solid #bfdbfe;
+      border-top-color: var(--blue);
+      border-radius: 50%;
+      animation: spin .7s linear infinite;
+      flex-shrink: 0;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ---- Error ---- */
+    .error-box {
+      background: var(--red-light);
+      border: 1px solid #fecaca;
+      border-radius: 8px;
+      padding: .875rem 1rem;
+      font-size: .875rem;
+      color: var(--red);
+      margin-top: 1rem;
+    }
+
+    /* ---- Results ---- */
+    #results { display: none; margin-top: 1.5rem; }
+    .results-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1rem;
+      flex-wrap: wrap;
+      gap: .5rem;
+    }
+    .results-header h3 { font-size: 1rem; font-weight: 700; }
+    .score-pill {
+      font-size: 1.1rem;
+      font-weight: 800;
+      padding: .25rem .875rem;
+      border-radius: 999px;
+    }
+    .score-high { background: var(--green-light); color: var(--green); }
+    .score-mid { background: var(--yellow-light); color: var(--yellow); }
+    .score-low { background: var(--red-light); color: var(--red); }
+
+    .rubric-table { width: 100%; border-collapse: collapse; font-size: .875rem; }
+    .rubric-table th {
+      background: var(--gray-100);
+      padding: .625rem .875rem;
+      text-align: left;
+      font-weight: 700;
+      color: var(--gray-700);
+      border-bottom: 2px solid var(--gray-200);
+    }
+    .rubric-table td {
+      padding: .75rem .875rem;
+      border-bottom: 1px solid var(--gray-100);
+      vertical-align: top;
+    }
+    .rubric-table tr:last-child td { border-bottom: none; }
+    .rubric-table tr:hover td { background: var(--gray-50); }
+    .criterion-name { font-weight: 600; color: var(--gray-900); }
+    .criterion-feedback { color: var(--gray-600, #4b5563); margin-top: .25rem; line-height: 1.5; }
+    .pts-cell { text-align: center; white-space: nowrap; font-weight: 700; }
+    .pts-full { color: var(--green); }
+    .pts-partial { color: var(--yellow); }
+    .pts-zero { color: var(--red); }
+
+    .overall-feedback {
+      margin-top: 1rem;
+      padding: 1rem;
+      background: var(--gray-50);
+      border-left: 3px solid var(--blue);
+      border-radius: 0 8px 8px 0;
+      font-size: .875rem;
+      color: var(--gray-700);
+      line-height: 1.6;
+    }
+    .overall-feedback strong { display: block; margin-bottom: .25rem; color: var(--gray-900); }
+
+    .pages-fetched {
+      font-size: .78rem;
+      color: var(--gray-500);
+      margin-top: .5rem;
+    }
+
+    /* ---- Validation panel ---- */
+    .validation-panel {
+      margin-top: 1rem;
+      border: 1px solid var(--gray-200);
+      border-radius: 8px;
+      overflow: hidden;
+      font-size: .825rem;
+    }
+    .validation-panel summary {
+      padding: .625rem 1rem;
+      background: var(--gray-50);
+      cursor: pointer;
+      font-weight: 600;
+      color: var(--gray-700);
+      list-style: none;
+      display: flex;
+      align-items: center;
+      gap: .5rem;
+    }
+    .validation-panel summary::-webkit-details-marker { display: none; }
+    .validation-panel summary::before { content: "▶"; font-size: .65rem; transition: transform .15s; }
+    .validation-panel[open] summary::before { transform: rotate(90deg); }
+    .validation-panel .val-body { padding: .75rem 1rem; display: flex; gap: 1.5rem; flex-wrap: wrap; }
+    .val-col { flex: 1; min-width: 200px; }
+    .val-col h4 { font-weight: 700; margin-bottom: .4rem; color: var(--gray-700); }
+    .val-list { list-style: none; display: flex; flex-direction: column; gap: .3rem; }
+    .val-list li { display: flex; gap: .4rem; align-items: flex-start; line-height: 1.4; }
+    .val-tag {
+      flex-shrink: 0;
+      padding: .1rem .35rem;
+      border-radius: 4px;
+      font-size: .7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+    .val-tag.error { background: var(--red-light); color: var(--red); }
+    .val-tag.warn  { background: var(--yellow-light); color: var(--yellow); }
+    .val-none { color: var(--green); font-weight: 600; }
+    .val-badge {
+      padding: .15rem .5rem;
+      border-radius: 999px;
+      font-size: .72rem;
+      font-weight: 700;
+    }
+    .val-badge.ok   { background: var(--green-light);  color: var(--green); }
+    .val-badge.warn { background: var(--yellow-light); color: var(--yellow); }
+    .val-badge.err  { background: var(--red-light);    color: var(--red); }
+
+    /* ---- Score override controls ---- */
+    .score-control {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: .3rem;
+    }
+    .score-btn {
+      width: 1.5rem; height: 1.5rem;
+      border: 1px solid var(--gray-300);
+      border-radius: 4px;
+      background: white;
+      cursor: pointer;
+      font-size: .65rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--gray-600, #4b5563);
+      padding: 0;
+      flex-shrink: 0;
+      line-height: 1;
+    }
+    .score-btn:hover { background: var(--gray-100); border-color: var(--gray-400, #9ca3af); }
+    .score-input {
+      width: 2.75rem;
+      text-align: center;
+      padding: .2rem .25rem;
+      border: 1px solid var(--gray-300);
+      border-radius: 4px;
+      font-size: .9rem;
+      font-weight: 700;
+      color: var(--gray-900);
+    }
+    .score-input:focus { outline: none; border-color: var(--blue); box-shadow: 0 0 0 2px rgba(37,99,235,.15); }
+    .score-denom { font-size: .8rem; color: var(--gray-500); white-space: nowrap; }
+
+    /* ---- Student picker ---- */
+    .student-picker {
+      margin-top: 1rem;
+      padding: 1rem 1.25rem;
+      background: var(--blue-light);
+      border: 1px solid #bfdbfe;
+      border-radius: 8px;
+      display: none;
+    }
+    .student-picker h4 { font-size: .875rem; font-weight: 700; color: var(--blue-dark); margin-bottom: .75rem; }
+    .picker-row { display: flex; gap: .75rem; align-items: center; flex-wrap: wrap; }
+    .picker-row select { flex: 1; min-width: 220px; }
+
+    /* ---- Canvas API section ---- */
+    .canvas-api-toggle {
+      display: flex;
+      align-items: center;
+      gap: .5rem;
+      font-size: .875rem;
+      font-weight: 600;
+      color: var(--blue);
+      cursor: pointer;
+      user-select: none;
+      padding: .5rem 0;
+    }
+    .canvas-api-toggle .arrow { font-size: .65rem; transition: transform .15s; }
+    .canvas-api-toggle.open .arrow { transform: rotate(90deg); }
+    .canvas-api-body { display: none; margin-top: .75rem; }
+
+    .match-table { width: 100%; border-collapse: collapse; font-size: .8rem; margin-top: .75rem; }
+    .match-table th {
+      background: var(--gray-100); padding: .4rem .75rem;
+      text-align: left; font-weight: 700; color: var(--gray-700);
+      border-bottom: 1px solid var(--gray-200);
+    }
+    .match-table td { padding: .4rem .75rem; border-bottom: 1px solid var(--gray-100); vertical-align: top; }
+    .match-ok   { color: var(--green); font-weight: 700; }
+    .match-warn { color: var(--yellow); font-weight: 700; }
+
+    /* ---- Push progress panel ---- */
+    .push-panel {
+      margin-top: 1rem;
+      border: 1px solid var(--gray-200);
+      border-radius: 8px;
+      overflow: hidden;
+      display: none;
+    }
+    .push-panel-header {
+      background: var(--gray-50);
+      padding: .75rem 1rem;
+      font-weight: 700;
+      font-size: .875rem;
+      border-bottom: 1px solid var(--gray-200);
+    }
+    .push-list { list-style: none; }
+    .push-list li {
+      display: flex;
+      align-items: center;
+      gap: .5rem;
+      padding: .5rem 1rem;
+      border-bottom: 1px solid var(--gray-100);
+      font-size: .85rem;
+    }
+    .push-list li:last-child { border-bottom: none; }
+    .push-icon { font-size: 1rem; flex-shrink: 0; }
+    .push-reason { color: var(--gray-500); font-size: .78rem; margin-left: auto; }
+
+    /* ---- Canvas CSV upload ---- */
+    .canvas-upload-row { display: flex; align-items: center; gap: .75rem; flex-wrap: wrap; }
+    .canvas-upload-row input[type=file] { font-size: .85rem; }
+    .canvas-status {
+      font-size: .8rem;
+      font-weight: 600;
+      padding: .25rem .625rem;
+      border-radius: 6px;
+    }
+    .canvas-status.ok  { background: var(--green-light);  color: var(--green); }
+    .canvas-status.err { background: var(--red-light);    color: var(--red); }
+
+    /* ---- Resume banner ---- */
+    .resume-banner {
+      background: white;
+      border: 1px dashed var(--gray-300);
+      border-radius: var(--radius);
+      padding: .875rem 1.25rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      font-size: .875rem;
+      color: var(--gray-500);
+    }
+    .resume-banner label { font-weight: 600; color: var(--gray-700); margin: 0; cursor: pointer; }
+    .resume-banner input[type=file] { display: none; }
+
+    /* ---- Session table ---- */
+    #session-section { display: none; }
+    .session-table { width: 100%; border-collapse: collapse; font-size: .85rem; }
+    .session-table th {
+      background: var(--gray-100);
+      padding: .5rem .875rem;
+      text-align: left;
+      font-weight: 700;
+      color: var(--gray-700);
+      border-bottom: 2px solid var(--gray-200);
+    }
+    .session-table td {
+      padding: .625rem .875rem;
+      border-bottom: 1px solid var(--gray-100);
+      color: var(--gray-700);
+    }
+    .session-table td.url-col {
+      max-width: 260px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      font-family: monospace;
+      font-size: .8rem;
+    }
+    .session-table tr:last-child td { border-bottom: none; }
+    .session-score { font-weight: 700; }
+  </style>
+</head>
+<body>
+
+<header class="app-header">
+  <div>
+    <h1>CS 140 Assignment Grader</h1>
+    <span>HTML &amp; CSS — Powered by Claude AI</span>
+  </div>
+  <div class="header-badge" id="session-count">0 graded this session</div>
+</header>
+
+<div class="container">
+
+  <!-- Resume banner -->
+  <div class="resume-banner" id="resume-banner">
+    <span>&#128197;</span>
+    <span>Resuming a previous session?</span>
+    <label for="load-session-file">&#128194; Load session file
+      <input type="file" id="load-session-file" accept=".json" onchange="loadSession(this)">
+    </label>
+  </div>
+
+  <!-- ===== STEP 1: Setup ===== -->
+  <div class="card" id="setup-card">
+    <div class="card-header">
+      <h2><span class="step-num">1</span> Assignment Setup</h2>
+      <button class="btn btn-outline btn-sm" id="edit-setup-btn" style="display:none" onclick="editSetup()">Edit</button>
+    </div>
+    <div class="card-body" id="setup-form-body">
+      <div class="form-grid">
+
+        <div class="form-row">
+          <div>
+            <label>Anthropic API Key <span class="hint">(stored only in your browser)</span></label>
+            <input type="password" id="api-key" placeholder="sk-ant-..." autocomplete="off">
+          </div>
+          <div>
+            <label>Assignment Name <span class="hint">(for your reference)</span></label>
+            <input type="text" id="assignment-name" placeholder="e.g. Assignment 3 — Layout">
+          </div>
+        </div>
+
+        <div>
+          <label>Assignment Description <span class="hint">(paste from Canvas or write your own)</span></label>
+          <textarea id="assignment-description" rows="4"
+            placeholder="Describe what students were asked to build. E.g. 'Build a single-page layout using Flexbox and CSS Grid, including a header, nav, sidebar, main content with profile cards, and a footer.'"></textarea>
+        </div>
+
+        <div>
+          <label>Rubric <span class="hint">(paste directly from Canvas — the tool will parse it)</span></label>
+          <textarea id="rubric" rows="10" class="input-mono"
+            placeholder="Paste your Canvas rubric here. Example:&#10;&#10;This criterion is linked to a Learning Outcome&#10;HTML page has a HEADER with a title&#10;This area will be used by the assessor to leave comments...&#10;5 pts&#10;&#10;..."></textarea>
+        </div>
+
+        <div>
+          <label>Canvas Gradebook CSV <span class="hint">(optional — enables Canvas import export)</span></label>
+          <div class="canvas-upload-row">
+            <input type="file" id="canvas-csv-file" accept=".csv" onchange="handleCanvasFile(this)">
+            <span id="canvas-csv-status" class="canvas-status"></span>
+          </div>
+        </div>
+
+        <!-- Canvas API (optional) -->
+        <div>
+          <div class="canvas-api-toggle" id="canvas-api-toggle" onclick="toggleCanvasAPI()">
+            <span class="arrow">&#9658;</span> Canvas API — push rubric grades directly to SpeedGrader <span class="hint">(optional)</span>
+          </div>
+          <div class="canvas-api-body" id="canvas-api-body">
+            <div class="form-row">
+              <div>
+                <label>Canvas API Token <span class="hint">(Account Settings → New Access Token)</span></label>
+                <input type="password" id="canvas-token" placeholder="token...">
+              </div>
+              <div>
+                <label>Course ID <span class="hint">(from Canvas URL: /courses/<b>XXXXXX</b>/)</span></label>
+                <input type="text" id="canvas-course-id" placeholder="e.g. 12345">
+              </div>
+            </div>
+            <div class="form-row">
+              <div>
+                <label>Assignment ID <span class="hint">(from Canvas URL: /assignments/<b>XXXXXX</b>)</span></label>
+                <input type="text" id="canvas-assignment-id" placeholder="e.g. 67890">
+              </div>
+              <div style="display:flex; align-items:flex-end">
+                <button class="btn btn-outline" onclick="connectToCanvas()" id="canvas-connect-btn" style="width:100%">Connect to Canvas &rarr;</button>
+              </div>
+            </div>
+            <div id="canvas-connect-status" style="margin-top:.5rem"></div>
+            <div id="canvas-match-preview" style="display:none">
+              <table class="match-table">
+                <thead><tr><th>Our Criterion</th><th>Canvas Criterion</th><th>Pts</th><th></th></tr></thead>
+                <tbody id="canvas-match-body"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div class="checkbox-row">
+          <input type="checkbox" id="crawl-pages">
+          <label for="crawl-pages" style="margin:0; font-weight:400">
+            Crawl all linked pages on the same domain
+            <span class="hint"> — use when the assignment spans multiple pages (about, portfolio, etc.)</span>
+          </label>
+        </div>
+
+        <div class="btn-row">
+          <button class="btn btn-primary" onclick="saveSetup()">Save Assignment &rarr;</button>
+          <button class="btn btn-outline btn-sm" onclick="loadDemo()">Load sample rubric</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Assignment badge shown after saving -->
+    <div id="assignment-badge" style="margin: 0 1.5rem 1.5rem;">
+      <div class="badge-name" id="badge-name"></div>
+      <div class="badge-meta" id="badge-meta"></div>
+    </div>
+  </div>
+
+  <!-- ===== STEP 2: Grade a student ===== -->
+  <div class="card" id="grade-section">
+    <div class="card-header">
+      <h2><span class="step-num">2</span> Grade a Student</h2>
+    </div>
+    <div class="card-body">
+      <div class="url-row">
+        <div>
+          <label>Student Website URL</label>
+          <input type="url" id="student-url" placeholder="https://student.github.io/project/">
+        </div>
+        <button class="btn btn-primary" onclick="gradeStudent()" id="grade-btn">Grade &rarr;</button>
+      </div>
+
+      <div id="loading">
+        <div class="spinner"></div>
+        <span id="loading-msg">Fetching site and grading with Claude…</span>
+      </div>
+
+      <div class="error-box" id="error-box" style="display:none"></div>
+
+      <!-- Results -->
+      <div id="results">
+        <div class="results-header">
+          <h3 id="results-url"></h3>
+          <span class="score-pill" id="score-pill"></span>
+        </div>
+
+        <div class="pages-fetched" id="pages-fetched"></div>
+
+        <table class="rubric-table" id="rubric-table">
+          <thead>
+            <tr>
+              <th>Criterion</th>
+              <th style="width:110px; text-align:center">Score</th>
+            </tr>
+          </thead>
+          <tbody id="rubric-body"></tbody>
+          <tfoot>
+            <tr>
+              <td style="font-weight:700; padding:.75rem .875rem; border-top: 2px solid var(--gray-200)">Total</td>
+              <td class="pts-cell" style="border-top: 2px solid var(--gray-200)" id="total-cell"></td>
+            </tr>
+          </tfoot>
+        </table>
+
+        <div class="overall-feedback" id="overall-feedback"></div>
+
+        <details class="validation-panel" id="validation-panel" style="display:none">
+          <summary>
+            W3C Validation Details
+            <span id="val-html-badge" class="val-badge"></span>
+            <span id="val-css-badge"  class="val-badge"></span>
+          </summary>
+          <div class="val-body">
+            <div class="val-col">
+              <h4>HTML</h4>
+              <ul class="val-list" id="val-html-list"></ul>
+            </div>
+            <div class="val-col">
+              <h4>CSS</h4>
+              <ul class="val-list" id="val-css-list"></ul>
+            </div>
+          </div>
+        </details>
+
+        <div class="btn-row" style="margin-top:1rem">
+          <button class="btn btn-success btn-sm" id="save-btn" onclick="showStudentPicker()">
+            &#10003; Save to session
+          </button>
+        </div>
+
+        <!-- Student picker — shown after clicking Save -->
+        <div class="student-picker" id="student-picker">
+          <h4>Who is this student?</h4>
+          <div class="picker-row">
+            <select id="student-select">
+              <option value="">-- Select student --</option>
+            </select>
+            <button class="btn btn-primary btn-sm" onclick="confirmSave()">Confirm &amp; Save</button>
+            <button class="btn btn-outline btn-sm" onclick="cancelPicker()">Cancel</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== STEP 3: Session log & export ===== -->
+  <div class="card" id="session-section">
+    <div class="card-header">
+      <h2><span class="step-num">3</span> Graded This Session</h2>
+      <div style="display:flex; gap:.5rem; flex-wrap:wrap">
+        <button class="btn btn-outline btn-sm" onclick="saveSession()">&#128190; Save Session</button>
+        <button class="btn btn-outline btn-sm" onclick="exportCSV()">&#8595; Detailed CSV</button>
+        <button class="btn btn-success btn-sm" id="canvas-export-btn" onclick="exportCanvasCSV()" style="display:none">&#8595; Score CSV</button>
+        <button class="btn btn-primary btn-sm" id="canvas-push-btn" onclick="pushToCanvas()" style="display:none">&#9650; Push to Canvas SpeedGrader</button>
+      </div>
+    </div>
+    <div class="card-body" style="padding:0">
+      <table class="session-table">
+        <thead>
+          <tr>
+            <th>Student</th>
+            <th>URL</th>
+            <th>Score</th>
+            <th>%</th>
+            <th>Saved at</th>
+          </tr>
+        </thead>
+        <tbody id="session-body"></tbody>
+      </table>
+      <div class="push-panel" id="push-panel">
+        <div class="push-panel-header">Canvas Push Results</div>
+        <ul class="push-list" id="push-list"></ul>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /container -->
+
+<script>
+  // ---------- State ----------
+  let setupData = null;        // {api_key, assignment_name, assignment_description, rubric, crawl}
+  let currentResult = null;    // {student_url, result}
+  let sessionGrades = [];      // [{student_url, student, result, saved_at}]
+  let canvasRoster = [];       // [{name, id, sis_login_id, section}]
+  let assignmentColumn = null; // e.g. "Flex and Grid (8922554)"
+  let assignmentPoints = null; // e.g. 85
+
+  // ---------- Setup ----------
+  async function handleCanvasFile(input) {
+    const file = input.files[0];
+    if (!file) return;
+    const statusEl = document.getElementById('canvas-csv-status');
+    statusEl.textContent = 'Parsing…';
+    statusEl.className = 'canvas-status';
+
+    const text = await file.text();
+    const res = await fetch('/api/parse-canvas-csv', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ csv: text }),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      statusEl.textContent = data.error;
+      statusEl.className = 'canvas-status err';
+      return;
+    }
+    canvasRoster = data.students;
+    assignmentColumn = data.assignment_column;
+    assignmentPoints = data.assignment_points;
+
+    statusEl.textContent = `✓ ${canvasRoster.length} students · "${assignmentColumn}"`;
+    statusEl.className = 'canvas-status ok';
+
+    // Populate student picker dropdown
+    const sel = document.getElementById('student-select');
+    sel.innerHTML = '<option value="">-- Select student --</option>';
+    canvasRoster.forEach((s, i) => {
+      const opt = document.createElement('option');
+      opt.value = i;
+      opt.textContent = s.name;
+      sel.appendChild(opt);
+    });
+
+    // Show Canvas export button
+    document.getElementById('canvas-export-btn').style.display = '';
+  }
+
+  function saveSetup() {
+    const apiKey = document.getElementById('api-key').value.trim();
+    const name   = document.getElementById('assignment-name').value.trim();
+    const desc   = document.getElementById('assignment-description').value.trim();
+    const rubric = document.getElementById('rubric').value.trim();
+    const crawl  = document.getElementById('crawl-pages').checked;
+
+    if (!apiKey) return alert('Please enter your Anthropic API key.');
+    if (!desc)   return alert('Please enter an assignment description.');
+    if (!rubric) return alert('Please paste in the rubric.');
+
+    setupData = { api_key: apiKey, assignment_name: name, assignment_description: desc, rubric, crawl };
+
+    document.getElementById('setup-form-body').style.display = 'none';
+    const badge = document.getElementById('assignment-badge');
+    badge.style.display = 'block';
+    document.getElementById('badge-name').textContent = name || 'Unnamed Assignment';
+
+    const lines = rubric.split('\n');
+    let criCount = 0;
+    lines.forEach(l => { if (/^\d+\s*pts?$/i.test(l.trim())) criCount++; });
+    const rosterInfo = canvasRoster.length ? ` · ${canvasRoster.length} students loaded` : '';
+    document.getElementById('badge-meta').textContent =
+      `${criCount} criteria detected · Crawl: ${crawl ? 'on' : 'off'}${rosterInfo}`;
+
+    document.getElementById('edit-setup-btn').style.display = '';
+    document.getElementById('grade-section').style.display = 'block';
+  }
+
+  function editSetup() {
+    document.getElementById('setup-form-body').style.display = 'block';
+    document.getElementById('assignment-badge').style.display = 'none';
+    document.getElementById('edit-setup-btn').style.display = 'none';
+  }
+
+  function loadDemo() {
+    document.getElementById('assignment-name').value = 'Assignment 3 — Layout';
+    document.getElementById('assignment-description').value =
+      'Build a single-page layout using HTML5 semantic elements and CSS Flexbox/Grid. ' +
+      'The page must include a header, a nav bar with 5+ links spaced with Flexbox, ' +
+      'a left sidebar (aside) and main content area laid out with Flex or Grid, ' +
+      '6 profile cards in the main area arranged in at least 2 columns, ' +
+      'and a footer with 20 links in a 5×4 CSS Grid. HTML and CSS must be valid.';
+    document.getElementById('rubric').value =
+`Criteria\tRatings\tPts
+This criterion is linked to a Learning Outcome
+HTML page has a HEADER with a title
+This area will be used by the assessor to leave comments related to this criterion.
+5 pts
+This criterion is linked to a Learning Outcome
+HTML page has a NAV BAR with at least 5 fake links
+Flex should be used to space them out evenly
+This area will be used by the assessor to leave comments related to this criterion.
+5 pts
+This criterion is linked to a Learning Outcome
+Use Flex or Grid to create a LEFT sidebar with text (using the ASIDE tag)
+This area will be used by the assessor to leave comments related to this criterion.
+10 pts
+This criterion is linked to a Learning Outcome
+MAIN tag contains everything to the right of the sidebar
+This area will be used by the assessor to leave comments related to this criterion.
+5 pts
+This criterion is linked to a Learning Outcome
+FOOTER is below both the sidebar and the main content
+This area will be used by the assessor to leave comments related to this criterion.
+5 pts
+This criterion is linked to a Learning Outcome
+MAIN area contains 6 "Profile Cards". Each card has a picture, title, and some lorem ipsum text
+This area will be used by the assessor to leave comments related to this criterion.
+10 pts
+This criterion is linked to a Learning Outcome
+Uses Flex or Grid to layout the profile cards into at least 2 columns
+This area will be used by the assessor to leave comments related to this criterion.
+20 pts
+This criterion is linked to a Learning Outcome
+FOOTER uses CSS Grid to organize 20 links into a 5x4 grid of links
+This area will be used by the assessor to leave comments related to this criterion.
+15 pts
+This criterion is linked to a Learning Outcome
+You have valid HTML (5 Points) and CSS (5 Points)
+This area will be used by the assessor to leave comments related to this criterion.
+10 pts`;
+  }
+
+  // ---------- Grading ----------
+  async function gradeStudent() {
+    if (!setupData) return alert('Save the assignment setup first.');
+
+    const url = document.getElementById('student-url').value.trim();
+    if (!url) return alert('Enter a student URL.');
+
+    setLoading(true);
+    hideResults();
+    hideError();
+
+    try {
+      const res = await fetch('/api/grade', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...setupData, url }),
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        showError(data.error || 'Unknown error.');
+        return;
+      }
+
+      currentResult = { student_url: url, result: data.result };
+      renderResults(url, data);
+      if (data.criteria_parsed) refineCriterionMap(data.criteria_parsed);
+
+    } catch (err) {
+      showError('Network error: ' + err.message);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  function renderValidation(validation) {
+    if (!validation) return;
+    const panel = document.getElementById('validation-panel');
+    panel.style.display = '';
+
+    function renderList(msgs, listEl) {
+      listEl.innerHTML = '';
+      if (!msgs.length) {
+        listEl.innerHTML = '<li class="val-none">&#10003; No issues</li>';
+        return;
+      }
+      msgs.slice(0, 15).forEach(m => {
+        const li = document.createElement('li');
+        const tagCls = m.type === 'error' ? 'error' : 'warn';
+        const loc = m.line ? ` line ${m.line}` : '';
+        li.innerHTML = `<span class="val-tag ${tagCls}">${m.type}</span><span>${escHtml(m.message)}${loc ? ' <em>(' + loc + ')</em>' : ''}</span>`;
+        listEl.appendChild(li);
+      });
+      if (msgs.length > 15) {
+        const li = document.createElement('li');
+        li.style.color = 'var(--gray-500)';
+        li.textContent = `… and ${msgs.length - 15} more`;
+        listEl.appendChild(li);
+      }
+    }
+
+    const he = validation.html_errors   || [];
+    const hw = validation.html_warnings || [];
+    const ce = validation.css_errors    || [];
+    const cw = validation.css_warnings  || [];
+
+    renderList([...he, ...hw], document.getElementById('val-html-list'));
+    renderList([...ce, ...cw], document.getElementById('val-css-list'));
+
+    function badge(errors, warnings) {
+      if (errors.length === 0) return ['ok',   `HTML ✓`];
+      if (errors.length <= 2)  return ['warn', `${errors.length} error${errors.length>1?'s':''}`];
+      return ['err', `${errors.length} errors`];
+    }
+
+    const [hCls, hTxt] = badge(he, hw);
+    const [cCls, cTxt] = badge(ce, cw);
+    const hBadge = document.getElementById('val-html-badge');
+    const cBadge = document.getElementById('val-css-badge');
+    hBadge.textContent = 'HTML: ' + hTxt;
+    hBadge.className = `val-badge ${hCls}`;
+    cBadge.textContent = 'CSS: ' + cTxt;
+    cBadge.className = `val-badge ${cCls}`;
+  }
+
+  function renderResults(url, data) {
+    const { result, pages_fetched, validation } = data;
+    const criteria = result.criteria;
+
+    // URL heading
+    document.getElementById('results-url').textContent = url;
+
+    // Pages fetched
+    if (pages_fetched && pages_fetched.length > 0) {
+      document.getElementById('pages-fetched').textContent =
+        `Pages fetched: ${pages_fetched.join(', ')}`;
+    }
+
+    // Score pill
+    const earned = criteria.reduce((s, c) => s + c.earned_points, 0);
+    const possible = criteria.reduce((s, c) => s + c.max_points, 0);
+    const pct = possible ? Math.round(earned / possible * 100) : 0;
+    const pill = document.getElementById('score-pill');
+    pill.textContent = `${earned} / ${possible} pts (${pct}%)`;
+    pill.className = 'score-pill ' + (pct >= 80 ? 'score-high' : pct >= 60 ? 'score-mid' : 'score-low');
+
+    // Table
+    const tbody = document.getElementById('rubric-body');
+    tbody.innerHTML = '';
+    criteria.forEach(c => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>
+          <div class="criterion-name">${escHtml(c.name)}</div>
+          <div class="criterion-feedback">${escHtml(c.feedback)}</div>
+        </td>
+        <td class="pts-cell">
+          <div class="score-control">
+            <button class="score-btn" title="Decrease" onclick="adjustScore(this,-1)">&#9660;</button>
+            <input type="number" class="score-input" value="${c.earned_points}"
+              min="0" max="${c.max_points}" data-max="${c.max_points}"
+              oninput="updateTotals()">
+            <span class="score-denom">/ ${c.max_points}</span>
+            <button class="score-btn" title="Increase" onclick="adjustScore(this,1)">&#9650;</button>
+          </div>
+        </td>
+      `;
+      tbody.appendChild(tr);
+    });
+
+    updateTotals();
+
+    // Overall feedback
+    const fb = document.getElementById('overall-feedback');
+    fb.innerHTML = `<strong>Overall feedback</strong>${escHtml(result.overall_feedback || '')}`;
+
+    renderValidation(validation);
+    document.getElementById('results').style.display = 'block';
+  }
+
+  // ---------- Score override ----------
+  function adjustScore(btn, delta) {
+    const input = btn.closest('.score-control').querySelector('.score-input');
+    const max = parseInt(input.dataset.max);
+    input.value = Math.max(0, Math.min(max, parseInt(input.value || 0) + delta));
+    updateTotals();
+  }
+
+  function updateTotals() {
+    const inputs = document.querySelectorAll('#rubric-body .score-input');
+    let earned = 0, possible = 0;
+    inputs.forEach(inp => {
+      const max = parseInt(inp.dataset.max);
+      const val = Math.max(0, Math.min(max, parseInt(inp.value) || 0));
+      inp.value = val; // clamp on direct typing
+      earned += val;
+      possible += max;
+    });
+    const pct = possible ? Math.round(earned / possible * 100) : 0;
+    const pill = document.getElementById('score-pill');
+    pill.textContent = `${earned} / ${possible} pts (${pct}%)`;
+    pill.className = 'score-pill ' + (pct >= 80 ? 'score-high' : pct >= 60 ? 'score-mid' : 'score-low');
+    const totalCls = pct >= 80 ? 'pts-full' : pct >= 60 ? 'pts-partial' : 'pts-zero';
+    const totalCell = document.getElementById('total-cell');
+    totalCell.className = `pts-cell ${totalCls}`;
+    totalCell.textContent = `${earned} / ${possible}`;
+  }
+
+  // ---------- Session ----------
+  function showStudentPicker() {
+    if (!currentResult) return;
+    // Sync overridden scores into currentResult before saving
+    const inputs = document.querySelectorAll('#rubric-body .score-input');
+    currentResult.result.criteria.forEach((c, i) => {
+      if (inputs[i]) c.earned_points = parseInt(inputs[i].value) || 0;
+    });
+    if (canvasRoster.length === 0) {
+      // No roster loaded — save immediately without student mapping
+      commitSave(null);
+      return;
+    }
+    document.getElementById('student-picker').style.display = 'block';
+    document.getElementById('save-btn').style.display = 'none';
+  }
+
+  function cancelPicker() {
+    document.getElementById('student-picker').style.display = 'none';
+    document.getElementById('save-btn').style.display = '';
+  }
+
+  function confirmSave() {
+    const sel = document.getElementById('student-select');
+    const idx = sel.value;
+    if (idx === '') return alert('Please select a student.');
+    commitSave(canvasRoster[parseInt(idx)]);
+    sel.value = '';
+  }
+
+  function commitSave(student) {
+    const entry = { ...currentResult, student: student || null, saved_at: new Date().toLocaleTimeString() };
+
+    const already = sessionGrades.findIndex(g => g.student_url === currentResult.student_url);
+    if (already >= 0) {
+      sessionGrades[already] = entry;
+    } else {
+      sessionGrades.push(entry);
+    }
+
+    refreshSessionTable();
+    document.getElementById('session-section').style.display = 'block';
+    document.getElementById('student-picker').style.display = 'none';
+    document.getElementById('save-btn').style.display = '';
+
+    const btn = document.getElementById('save-btn');
+    btn.textContent = '✓ Saved!';
+    btn.disabled = true;
+    setTimeout(() => { btn.textContent = '✓ Save to session'; btn.disabled = false; }, 1500);
+  }
+
+  function refreshSessionTable() {
+    document.getElementById('session-count').textContent =
+      `${sessionGrades.length} graded this session`;
+
+    const tbody = document.getElementById('session-body');
+    tbody.innerHTML = '';
+    sessionGrades.forEach(g => {
+      const criteria = g.result.criteria;
+      const earned   = criteria.reduce((s, c) => s + c.earned_points, 0);
+      const possible = criteria.reduce((s, c) => s + c.max_points, 0);
+      const pct = possible ? Math.round(earned / possible * 100) : 0;
+      const studentName = g.student ? g.student.name : '—';
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${escHtml(studentName)}</td>
+        <td class="url-col" title="${escHtml(g.student_url)}">${escHtml(g.student_url)}</td>
+        <td class="session-score">${earned} / ${possible}</td>
+        <td>${pct}%</td>
+        <td>${g.saved_at || ''}</td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+
+  async function exportCSV() {
+    if (!sessionGrades.length) return alert('No grades in session yet.');
+    const res = await fetch('/api/export-csv', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ grades: sessionGrades }),
+    });
+    if (!res.ok) { const d = await res.json(); return alert('Export error: ' + d.error); }
+    triggerDownload(await res.blob(), `grades_detailed_${Date.now()}.csv`);
+  }
+
+  async function exportCanvasCSV() {
+    if (!sessionGrades.length) return alert('No grades in session yet.');
+    if (!assignmentColumn) return alert('No Canvas gradebook loaded — upload the CSV in setup first.');
+    const res = await fetch('/api/export-canvas-csv', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        grades: sessionGrades,
+        assignment_column: assignmentColumn,
+        assignment_points: assignmentPoints,
+      }),
+    });
+    if (!res.ok) { const d = await res.json(); return alert('Export error: ' + d.error); }
+    triggerDownload(await res.blob(), `canvas_import_${Date.now()}.csv`);
+  }
+
+  function triggerDownload(blob, filename) {
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = filename;
+    a.click();
+  }
+
+  // ---------- Canvas API ----------
+  let canvasConfig = null;    // {token, course_id, assignment_id}
+  let canvasCriteria = [];    // [{id, description, points}] from Canvas
+  let criterionMap = {};      // {our_criterion_name: canvas_criterion_id}
+
+  function toggleCanvasAPI() {
+    const toggle = document.getElementById('canvas-api-toggle');
+    const body   = document.getElementById('canvas-api-body');
+    const open   = body.style.display === 'block';
+    body.style.display = open ? 'none' : 'block';
+    toggle.classList.toggle('open', !open);
+  }
+
+  function normalize(s) {
+    return (s || '').toLowerCase().trim().replace(/\s+/g, ' ');
+  }
+
+  function buildCriterionMap(ourCriteria, canvasCrit) {
+    const map = {};
+    const usedCanvasIds = new Set();
+
+    // Pass 1: exact match
+    ourCriteria.forEach(oc => {
+      const ocn = normalize(oc.name);
+      const match = canvasCrit.find(cc => !usedCanvasIds.has(cc.id) && normalize(cc.description) === ocn);
+      if (match) { map[oc.name] = match.id; usedCanvasIds.add(match.id); }
+    });
+
+    // Pass 2: our name starts with canvas description (our name has extra sub-lines appended)
+    ourCriteria.forEach(oc => {
+      if (map[oc.name]) return;
+      const ocn = normalize(oc.name);
+      const match = canvasCrit.find(cc => !usedCanvasIds.has(cc.id) && ocn.startsWith(normalize(cc.description)));
+      if (match) { map[oc.name] = match.id; usedCanvasIds.add(match.id); }
+    });
+
+    // Pass 3: canvas description contains our name or vice versa
+    ourCriteria.forEach(oc => {
+      if (map[oc.name]) return;
+      const ocn = normalize(oc.name);
+      const match = canvasCrit.find(cc => {
+        if (usedCanvasIds.has(cc.id)) return false;
+        const ccn = normalize(cc.description);
+        return ocn.includes(ccn) || ccn.includes(ocn);
+      });
+      if (match) { map[oc.name] = match.id; usedCanvasIds.add(match.id); }
+    });
+
+    // Pass 4: position fallback for any still unmatched
+    const unmatchedOurs   = ourCriteria.filter(oc => !map[oc.name]);
+    const unmatchedCanvas = canvasCrit.filter(cc => !usedCanvasIds.has(cc.id));
+    unmatchedOurs.forEach((oc, i) => {
+      if (unmatchedCanvas[i]) { map[oc.name] = unmatchedCanvas[i].id; }
+    });
+
+    return map;
+  }
+
+  async function connectToCanvas() {
+    const token       = document.getElementById('canvas-token').value.trim();
+    const course_id   = document.getElementById('canvas-course-id').value.trim();
+    const assignment_id = document.getElementById('canvas-assignment-id').value.trim();
+
+    if (!token || !course_id || !assignment_id)
+      return alert('Enter your Canvas API token, Course ID, and Assignment ID.');
+
+    const statusEl = document.getElementById('canvas-connect-status');
+    statusEl.innerHTML = '<em style="color:var(--gray-500)">Connecting to Canvas…</em>';
+    document.getElementById('canvas-connect-btn').disabled = true;
+
+    const res = await fetch('/api/canvas/fetch-rubric', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token, course_id, assignment_id }),
+    });
+    const data = await res.json();
+    document.getElementById('canvas-connect-btn').disabled = false;
+
+    if (!res.ok) {
+      statusEl.innerHTML = `<span style="color:var(--red)">${escHtml(data.error)}</span>`;
+      return;
+    }
+
+    canvasConfig   = { token, course_id, assignment_id };
+    canvasCriteria = data.criteria;
+
+    // Build criterion map using parsed rubric (if setup is already saved, use its rubric)
+    const rubricText = document.getElementById('rubric').value;
+    let ourCriteria = [];
+    if (rubricText) {
+      // Quick client-side count — full parse happens on server; use canvas criteria as reference
+      ourCriteria = canvasCriteria.map(cc => ({ name: cc.description })); // fallback
+    }
+
+    // We'll do the real matching when grading starts (we have parsed criteria from server then)
+    // For now, show a preview using canvas criterion descriptions mapped to themselves
+    criterionMap = {};
+    canvasCriteria.forEach(cc => { criterionMap[cc.description] = cc.id; });
+
+    statusEl.innerHTML = `<span style="color:var(--green);font-weight:600">✓ Connected — "${escHtml(data.assignment_name)}" · ${canvasCriteria.length} rubric criteria found</span>`;
+
+    // Show match preview table
+    const preview = document.getElementById('canvas-match-preview');
+    const tbody   = document.getElementById('canvas-match-body');
+    tbody.innerHTML = '';
+    canvasCriteria.forEach(cc => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${escHtml(cc.description)}</td>
+        <td>${escHtml(cc.description)}</td>
+        <td>${cc.points}</td>
+        <td class="match-ok">&#10003;</td>
+      `;
+      tbody.appendChild(tr);
+    });
+    preview.style.display = 'block';
+    document.getElementById('canvas-push-btn').style.display = '';
+  }
+
+  // Called after grading to refine criterion map using actual parsed criteria names
+  function refineCriterionMap(parsedCriteria) {
+    if (!canvasCriteria.length) return;
+    criterionMap = buildCriterionMap(parsedCriteria, canvasCriteria);
+
+    // Update match preview with real names
+    const tbody = document.getElementById('canvas-match-body');
+    if (!tbody) return;
+    tbody.innerHTML = '';
+    parsedCriteria.forEach(oc => {
+      const matchedId = criterionMap[oc.name];
+      const canvasCrit = canvasCriteria.find(cc => cc.id === matchedId);
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${escHtml(oc.name)}</td>
+        <td>${escHtml(canvasCrit ? canvasCrit.description : '—')}</td>
+        <td>${canvasCrit ? canvasCrit.points : '—'}</td>
+        <td class="${canvasCrit ? 'match-ok' : 'match-warn'}">${canvasCrit ? '&#10003;' : '&#9888;'}</td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+
+  async function pushToCanvas() {
+    if (!sessionGrades.length) return alert('No grades in session yet.');
+    if (!canvasConfig)         return alert('Connect to Canvas first (in Assignment Setup).');
+
+    const pushBtn = document.getElementById('canvas-push-btn');
+    pushBtn.disabled = true;
+    pushBtn.textContent = 'Pushing…';
+
+    const panel = document.getElementById('push-panel');
+    const list  = document.getElementById('push-list');
+    panel.style.display = 'block';
+    list.innerHTML = sessionGrades.map(g => {
+      const name = g.student ? g.student.name : g.student_url;
+      return `<li id="push-${encodeURIComponent(g.student_url)}">
+        <span class="push-icon">⏳</span> ${escHtml(name)}
+      </li>`;
+    }).join('');
+
+    const res = await fetch('/api/canvas/push-grades', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        ...canvasConfig,
+        grades: sessionGrades,
+        criterion_map: criterionMap,
+      }),
+    });
+    const data = await res.json();
+    pushBtn.disabled = false;
+    pushBtn.textContent = '↑ Push to Canvas SpeedGrader';
+
+    if (!res.ok) return alert('Push error: ' + data.error);
+
+    // Update each student's row in the push list
+    list.innerHTML = '';
+    data.results.forEach(r => {
+      const li = document.createElement('li');
+      if (r.status === 'ok') {
+        li.innerHTML = `<span class="push-icon" style="color:var(--green)">&#10003;</span> ${escHtml(r.student)}`;
+      } else if (r.status === 'skipped') {
+        li.innerHTML = `<span class="push-icon" style="color:var(--yellow)">&#9888;</span> ${escHtml(r.student)} <span class="push-reason">${escHtml(r.reason)}</span>`;
+      } else {
+        li.innerHTML = `<span class="push-icon" style="color:var(--red)">&#10007;</span> ${escHtml(r.student)} <span class="push-reason">${escHtml(r.reason)}</span>`;
+      }
+      list.appendChild(li);
+    });
+  }
+
+  // ---------- Save / Load session ----------
+  function saveSession() {
+    if (!sessionGrades.length && !setupData) return alert('Nothing to save yet.');
+    const snapshot = {
+      version: 1,
+      saved_at: new Date().toISOString(),
+      setupData: setupData ? { ...setupData, api_key: undefined } : null,
+      sessionGrades,
+      canvasRoster,
+      assignmentColumn,
+      assignmentPoints,
+      canvasCriteria,
+      criterionMap,
+      // canvasConfig token intentionally excluded — re-enter on resume
+      canvasConfigPartial: canvasConfig
+        ? { course_id: canvasConfig.course_id, assignment_id: canvasConfig.assignment_id }
+        : null,
+    };
+    const name = (setupData?.assignment_name || 'session').replace(/\s+/g, '_');
+    triggerDownload(
+      new Blob([JSON.stringify(snapshot, null, 2)], { type: 'application/json' }),
+      `grader_${name}_${Date.now()}.json`
+    );
+  }
+
+  async function loadSession(input) {
+    const file = input.files[0];
+    if (!file) return;
+    let snapshot;
+    try {
+      snapshot = JSON.parse(await file.text());
+    } catch {
+      return alert('Could not read session file — is it a valid grader JSON?');
+    }
+
+    // Restore state
+    setupData         = snapshot.setupData || null;
+    sessionGrades     = snapshot.sessionGrades || [];
+    canvasRoster      = snapshot.canvasRoster || [];
+    assignmentColumn  = snapshot.assignmentColumn || null;
+    assignmentPoints  = snapshot.assignmentPoints || null;
+    canvasCriteria    = snapshot.canvasCriteria || [];
+    criterionMap      = snapshot.criterionMap || {};
+
+    if (setupData) {
+      // Re-populate form fields
+      document.getElementById('assignment-name').value        = setupData.assignment_name || '';
+      document.getElementById('assignment-description').value = setupData.assignment_description || '';
+      document.getElementById('rubric').value                 = setupData.rubric || '';
+      document.getElementById('crawl-pages').checked          = setupData.crawl || false;
+
+      // Show badge, hide form
+      document.getElementById('setup-form-body').style.display = 'none';
+      document.getElementById('assignment-badge').style.display = 'block';
+      document.getElementById('edit-setup-btn').style.display = '';
+      document.getElementById('badge-name').textContent = setupData.assignment_name || 'Unnamed Assignment';
+      const rosterInfo = canvasRoster.length ? ` · ${canvasRoster.length} students loaded` : '';
+      document.getElementById('badge-meta').textContent =
+        `Resumed session · ${sessionGrades.length} graded${rosterInfo}`;
+      document.getElementById('grade-section').style.display = 'block';
+    }
+
+    // Re-populate student picker dropdown
+    if (canvasRoster.length) {
+      const sel = document.getElementById('student-select');
+      sel.innerHTML = '<option value="">-- Select student --</option>';
+      canvasRoster.forEach((s, i) => {
+        const opt = document.createElement('option');
+        opt.value = i;
+        opt.textContent = s.name;
+        sel.appendChild(opt);
+      });
+      document.getElementById('canvas-export-btn').style.display = '';
+    }
+
+    // Restore Canvas API partial config (course/assignment IDs, not token)
+    if (snapshot.canvasConfigPartial) {
+      document.getElementById('canvas-course-id').value   = snapshot.canvasConfigPartial.course_id || '';
+      document.getElementById('canvas-assignment-id').value = snapshot.canvasConfigPartial.assignment_id || '';
+      // Open the Canvas API section so they know to re-enter the token
+      const body = document.getElementById('canvas-api-body');
+      body.style.display = 'block';
+      document.getElementById('canvas-api-toggle').classList.add('open');
+      document.getElementById('canvas-connect-status').innerHTML =
+        '<span style="color:var(--yellow);font-weight:600">⚠ Re-enter your Canvas API token and click Connect to enable SpeedGrader push.</span>';
+    }
+
+    // Show Canvas push button if criteria available
+    if (canvasCriteria.length) {
+      document.getElementById('canvas-push-btn').style.display = '';
+      document.getElementById('canvas-match-preview').style.display = 'block';
+      refineCriterionMap(Object.keys(criterionMap).map(name => ({ name })));
+    }
+
+    // Render session table
+    if (sessionGrades.length) {
+      refreshSessionTable();
+      document.getElementById('session-section').style.display = 'block';
+    }
+
+    // Hide resume banner
+    document.getElementById('resume-banner').style.display = 'none';
+  }
+
+  // ---------- UI helpers ----------
+  function setLoading(on) {
+    document.getElementById('loading').style.display = on ? 'flex' : 'none';
+    document.getElementById('grade-btn').disabled = on;
+  }
+  function hideResults() { document.getElementById('results').style.display = 'none'; }
+  function showError(msg) {
+    const el = document.getElementById('error-box');
+    el.textContent = msg;
+    el.style.display = 'block';
+  }
+  function hideError() { document.getElementById('error-box').style.display = 'none'; }
+  function escHtml(str) {
+    return (str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  // Restore API key from localStorage if available
+  window.addEventListener('DOMContentLoaded', () => {
+    const saved = localStorage.getItem('cs140_api_key');
+    if (saved) document.getElementById('api-key').value = saved;
+    document.getElementById('api-key').addEventListener('change', e => {
+      localStorage.setItem('cs140_api_key', e.target.value);
+    });
+  });
+
+  // Grade on Enter in URL field
+  document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('student-url').addEventListener('keydown', e => {
+      if (e.key === 'Enter') gradeStudent();
+    });
+  });
+</script>
+</body>
+</html>

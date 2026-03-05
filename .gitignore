@@ -1,0 +1,10 @@
+venv/
+__pycache__/
+*.pyc
+*.pyo
+.env
+.DS_Store
+
+# Session files contain student data — never commit
+grader_*.json
+*.session.json
