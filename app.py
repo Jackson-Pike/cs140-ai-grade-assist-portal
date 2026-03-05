@@ -324,9 +324,13 @@ def grade():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+    first_page = next(iter(pages.values()), {})
+    source = {"html": first_page.get("html", ""), "css": first_page.get("css", "")}
+
     return jsonify({
         "result": result,
         "validation": validation,
+        "source": source,
         "pages_fetched": list(pages.keys()),
         "criteria_parsed": criteria,
     })

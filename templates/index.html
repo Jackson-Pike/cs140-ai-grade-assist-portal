@@ -570,7 +570,64 @@
     }
     .session-table tr:last-child td { border-bottom: none; }
     .session-score { font-weight: 700; }
+
+  /* ---- Source viewer ---- */
+  .source-panel {
+    border: 1px solid var(--gray-200);
+    border-radius: 8px;
+    overflow: hidden;
+    margin-top: 1rem;
+  }
+  .source-panel summary {
+    padding: .625rem 1rem;
+    background: var(--gray-50);
+    font-size: .875rem;
+    font-weight: 600;
+    color: var(--gray-700);
+    cursor: pointer;
+    list-style: none;
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    user-select: none;
+  }
+  .source-panel summary::-webkit-details-marker { display: none; }
+  .source-panel summary::before { content: "▶"; font-size: .65rem; transition: transform .15s; }
+  .source-panel[open] summary::before { transform: rotate(90deg); }
+  .source-tabs {
+    display: flex;
+    border-bottom: 1px solid var(--gray-200);
+    background: var(--gray-100);
+  }
+  .src-tab {
+    padding: .4rem 1rem;
+    font-size: .8rem;
+    font-weight: 600;
+    border: none;
+    background: none;
+    cursor: pointer;
+    color: var(--gray-500);
+    border-bottom: 2px solid transparent;
+  }
+  .src-tab.active { color: var(--blue); border-bottom-color: var(--blue); background: white; }
+  .src-tab:hover:not(.active) { color: var(--gray-700); background: var(--gray-50); }
+  .cm-error-marker {
+    width: 8px; height: 8px;
+    background: var(--red);
+    border-radius: 50%;
+    display: inline-block;
+    margin: 4px 2px;
+    cursor: help;
+  }
+  .cm-error-line { background: #fff1f1 !important; }
+  .cm-warn-line  { background: #fffbeb !important; }
+  .CodeMirror { font-size: .8rem; height: 380px; border: none; }
   </style>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/xml/xml.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/css/css.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/htmlmixed/htmlmixed.min.js"></script>
 </head>
 <body>
 
@@ -786,6 +843,16 @@
               <ul class="val-list" id="val-css-list"></ul>
             </div>
           </div>
+        </details>
+
+        <details class="source-panel" id="source-panel" style="display:none">
+          <summary>Source Code</summary>
+          <div class="source-tabs">
+            <button class="src-tab active" id="src-tab-html" onclick="switchSourceTab('html')">HTML</button>
+            <button class="src-tab" id="src-tab-css" onclick="switchSourceTab('css')">CSS</button>
+          </div>
+          <div id="cm-html-wrap"></div>
+          <div id="cm-css-wrap" style="display:none"></div>
         </details>
 
         <div class="btn-row" style="margin-top:1rem">
@@ -1021,6 +1088,7 @@ This area will be used by the assessor to leave comments related to this criteri
       if (batchIndex >= 0) {
         batchQueue[batchIndex].result        = data.result;
         batchQueue[batchIndex].validation    = data.validation;
+        batchQueue[batchIndex].source        = data.source;
         batchQueue[batchIndex].pages_fetched = data.pages_fetched;
         batchQueue[batchIndex].criteria_parsed = data.criteria_parsed;
         document.getElementById('approve-btn').style.display = '';
@@ -1085,8 +1153,85 @@ This area will be used by the assessor to leave comments related to this criteri
     cBadge.className = `val-badge ${cCls}`;
   }
 
+  // ---------- Source viewer ----------
+  let cmHtml = null, cmCss = null;
+
+  function initSourceEditors() {
+    if (cmHtml) return; // already created
+    const opts = {
+      lineNumbers: true,
+      readOnly: true,
+      lineWrapping: false,
+      gutters: ['CodeMirror-linenumbers', 'cm-errors'],
+    };
+    cmHtml = CodeMirror(document.getElementById('cm-html-wrap'), { ...opts, mode: 'htmlmixed' });
+    cmCss  = CodeMirror(document.getElementById('cm-css-wrap'),  { ...opts, mode: 'css' });
+    cmHtml.setSize(null, 380);
+    cmCss.setSize(null, 380);
+  }
+
+  function setVnuMarkers(cm, errors) {
+    cm.clearGutter('cm-errors');
+    // clear any old line backgrounds
+    cm.eachLine(lh => cm.removeLineClass(lh, 'background', 'cm-error-line'));
+    errors.forEach(m => {
+      const lineNo = (m.line || 0) - 1; // CM is 0-indexed
+      if (lineNo < 0) return;
+      const marker = document.createElement('div');
+      marker.className = 'cm-error-marker';
+      marker.title = m.message;
+      cm.setGutterMarker(lineNo, 'cm-errors', marker);
+      cm.addLineClass(lineNo, 'background', 'cm-error-line');
+    });
+  }
+
+  function renderSource(source, validation) {
+    const panel = document.getElementById('source-panel');
+    if (!source || (!source.html && !source.css)) {
+      panel.style.display = 'none';
+      return;
+    }
+    panel.style.display = '';
+
+    initSourceEditors();
+
+    cmHtml.setValue(source.html || '');
+    cmCss.setValue(source.css || '');
+
+    if (validation) {
+      setVnuMarkers(cmHtml, [...(validation.html_errors || []), ...(validation.html_warnings || [])]);
+      setVnuMarkers(cmCss,  [...(validation.css_errors  || []), ...(validation.css_warnings  || [])]);
+    }
+
+    // Refresh layout after potential hidden→visible transition
+    setTimeout(() => {
+      if (document.getElementById('source-panel').open) {
+        cmHtml.refresh();
+        cmCss.refresh();
+      }
+    }, 50);
+  }
+
+  function switchSourceTab(tab) {
+    document.getElementById('cm-html-wrap').style.display = tab === 'html' ? '' : 'none';
+    document.getElementById('cm-css-wrap').style.display  = tab === 'css'  ? '' : 'none';
+    document.getElementById('src-tab-html').classList.toggle('active', tab === 'html');
+    document.getElementById('src-tab-css').classList.toggle('active', tab === 'css');
+    // Refresh the now-visible editor so it renders correctly
+    if (tab === 'html' && cmHtml) cmHtml.refresh();
+    if (tab === 'css'  && cmCss)  cmCss.refresh();
+  }
+
+  // Refresh CodeMirror when the details panel is opened
+  document.addEventListener('toggle', e => {
+    if (e.target && e.target.id === 'source-panel' && e.target.open) {
+      if (cmHtml) cmHtml.refresh();
+      if (cmCss)  cmCss.refresh();
+    }
+  }, true);
+
   function renderResults(url, data) {
-    const { result, pages_fetched, validation } = data;
+    const { result, pages_fetched, validation, source } = data;
     const criteria = result.criteria;
 
     // URL heading
@@ -1142,6 +1287,7 @@ This area will be used by the assessor to leave comments related to this criteri
     fb.innerHTML = `<strong>Overall feedback</strong>${escHtml(result.overall_feedback || '')}`;
 
     renderValidation(validation);
+    renderSource(source, validation);
     document.getElementById('results').style.display = 'block';
   }
 
@@ -1685,7 +1831,7 @@ This area will be used by the assessor to leave comments related to this criteri
 
     // If already graded, show previous result
     if (entry.result) {
-      renderResults(entry.url, { result: entry.result, validation: entry.validation, pages_fetched: entry.pages_fetched, criteria_parsed: entry.criteria_parsed });
+      renderResults(entry.url, { result: entry.result, validation: entry.validation, source: entry.source, pages_fetched: entry.pages_fetched, criteria_parsed: entry.criteria_parsed });
       document.getElementById('approve-btn').style.display = entry.approved ? 'none' : '';
       document.getElementById('save-btn').style.display = 'none';
     } else {
@@ -1857,7 +2003,10 @@ This area will be used by the assessor to leave comments related to this criteri
     document.getElementById('loading').style.display = on ? 'flex' : 'none';
     document.getElementById('grade-btn').disabled = on;
   }
-  function hideResults() { document.getElementById('results').style.display = 'none'; }
+  function hideResults() {
+    document.getElementById('results').style.display = 'none';
+    document.getElementById('source-panel').style.display = 'none';
+  }
   function showError(msg) {
     const el = document.getElementById('error-box');
     el.textContent = msg;
