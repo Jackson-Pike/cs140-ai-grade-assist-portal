@@ -463,6 +463,7 @@ def canvas_fetch_rubric():
             "score": s.get("score"),
             "graded": s.get("workflow_state") == "graded",
             "rubric_assessed": bool(ra),
+            "rubric_assessment": ra,   # full {criterion_id: {points, comments}}
         }
 
     return jsonify({

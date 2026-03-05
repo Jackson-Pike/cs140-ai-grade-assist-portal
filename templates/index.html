@@ -261,7 +261,27 @@
     .rubric-table tr:last-child td { border-bottom: none; }
     .rubric-table tr:hover td { background: var(--gray-50); }
     .criterion-name { font-weight: 600; color: var(--gray-900); }
-    .criterion-feedback { color: var(--gray-600, #4b5563); margin-top: .25rem; line-height: 1.5; }
+    .criterion-feedback {
+      width: 100%;
+      margin-top: .375rem;
+      padding: .375rem .5rem;
+      border: 1px solid var(--gray-200);
+      border-radius: 5px;
+      font-size: .825rem;
+      font-family: inherit;
+      color: var(--gray-700);
+      line-height: 1.5;
+      resize: vertical;
+      min-height: 3.5rem;
+      background: var(--gray-50);
+      transition: border-color .15s;
+    }
+    .criterion-feedback:focus {
+      outline: none;
+      border-color: var(--blue);
+      background: white;
+      box-shadow: 0 0 0 2px rgba(37,99,235,.1);
+    }
     .pts-cell { text-align: center; white-space: nowrap; font-weight: 700; }
     .pts-full { color: var(--green); }
     .pts-partial { color: var(--yellow); }
@@ -711,7 +731,9 @@
           <label>Student Website URL</label>
           <input type="url" id="student-url" placeholder="https://student.github.io/project/">
         </div>
+        <a id="open-page-btn" href="#" target="_blank" class="btn btn-outline" title="Open student page" style="display:none">&#8599;</a>
         <button class="btn btn-primary" onclick="gradeStudent()" id="grade-btn">Grade &rarr;</button>
+        <button class="btn btn-outline" id="load-canvas-btn" onclick="loadCanvasExistingGrade()" style="display:none" title="Load existing Canvas rubric scores without an AI call">&#9660; Load from Canvas</button>
       </div>
 
       <div id="loading">
@@ -1087,12 +1109,17 @@ This area will be used by the assessor to leave comments related to this criteri
     // Table
     const tbody = document.getElementById('rubric-body');
     tbody.innerHTML = '';
+    // Update open-page button
+    const openBtn = document.getElementById('open-page-btn');
+    openBtn.href = url;
+    openBtn.style.display = '';
+
     criteria.forEach(c => {
       const tr = document.createElement('tr');
       tr.innerHTML = `
         <td>
           <div class="criterion-name">${escHtml(c.name)}</div>
-          <div class="criterion-feedback">${escHtml(c.feedback)}</div>
+          <textarea class="criterion-feedback" rows="2">${escHtml(c.feedback || '')}</textarea>
         </td>
         <td class="pts-cell">
           <div class="score-control">
@@ -1147,13 +1174,22 @@ This area will be used by the assessor to leave comments related to this criteri
   }
 
   // ---------- Session ----------
+  function syncCurrentResultFromUI() {
+    if (!currentResult) return;
+    const rows = document.querySelectorAll('#rubric-body tr');
+    currentResult.result.criteria.forEach((c, i) => {
+      const row = rows[i];
+      if (!row) return;
+      const input    = row.querySelector('.score-input');
+      const textarea = row.querySelector('.criterion-feedback');
+      if (input)    c.earned_points = parseInt(input.value) || 0;
+      if (textarea) c.feedback      = textarea.value;
+    });
+  }
+
   function showStudentPicker() {
     if (!currentResult) return;
-    // Sync overridden scores into currentResult before saving
-    const inputs = document.querySelectorAll('#rubric-body .score-input');
-    currentResult.result.criteria.forEach((c, i) => {
-      if (inputs[i]) c.earned_points = parseInt(inputs[i].value) || 0;
-    });
+    syncCurrentResultFromUI();
     if (canvasRoster.length === 0) {
       // No roster loaded — save immediately without student mapping
       commitSave(null);
@@ -1253,6 +1289,42 @@ This area will be used by the assessor to leave comments related to this criteri
     a.href = URL.createObjectURL(blob);
     a.download = filename;
     a.click();
+  }
+
+  function canvasAssessmentToResult(rubricAssessment) {
+    // Build inverse map: canvas criterion id -> our criterion name
+    const inverseMap = {};
+    Object.entries(criterionMap).forEach(([name, id]) => { inverseMap[id] = name; });
+
+    const criteria = canvasCriteria.map(cc => {
+      const a    = rubricAssessment[cc.id] || {};
+      const name = inverseMap[cc.id] || cc.description;
+      return {
+        name,
+        max_points:    cc.points,
+        earned_points: a.points   ?? 0,
+        feedback:      a.comments ?? '',
+      };
+    });
+    return { criteria, overall_feedback: '' };
+  }
+
+  function loadCanvasExistingGrade() {
+    if (batchIndex < 0) return;
+    const entry = batchQueue[batchIndex];
+    const sub   = getCanvasSubmission(entry);
+    if (!sub?.rubric_assessment || !canvasCriteria.length) {
+      return alert('No rubric assessment data available from Canvas for this student.');
+    }
+    const result = canvasAssessmentToResult(sub.rubric_assessment);
+    currentResult = { student_url: entry.url, result };
+    // Render as if Claude graded it — no API call
+    renderResults(entry.url, { result, validation: null, pages_fetched: [], criteria_parsed: null });
+    document.getElementById('approve-btn').style.display = '';
+    document.getElementById('save-btn').style.display = 'none';
+    // Store in batch queue
+    batchQueue[batchIndex].result = result;
+    renderStudentRail();
   }
 
   // ---------- Canvas API ----------
@@ -1599,6 +1671,14 @@ This area will be used by the assessor to leave comments related to this criteri
         ` · <span style="color:#7c3aed;font-weight:600">◆ Already graded in Canvas — score: ${sub.score ?? '?'}${sub.rubric_assessed ? ', rubric filled' : ''}</span>`);
     }
 
+    // Show/hide "Load from Canvas" button
+    const loadCanvasBtn = document.getElementById('load-canvas-btn');
+    if (sub?.rubric_assessed && !entry.approved) {
+      loadCanvasBtn.style.display = '';
+    } else {
+      loadCanvasBtn.style.display = 'none';
+    }
+
     // Toggle buttons: batch mode uses Approve, not picker
     document.getElementById('save-btn').style.display = 'none';
     document.getElementById('approve-btn').style.display = 'none'; // shown after grading
@@ -1638,12 +1718,7 @@ This area will be used by the assessor to leave comments related to this criteri
   function approveAndNext() {
     if (batchIndex < 0 || !currentResult) return;
     const entry = batchQueue[batchIndex];
-
-    // Sync overridden scores
-    const inputs = document.querySelectorAll('#rubric-body .score-input');
-    currentResult.result.criteria.forEach((c, i) => {
-      if (inputs[i]) c.earned_points = parseInt(inputs[i].value) || 0;
-    });
+    syncCurrentResultFromUI();
 
     // Store result back in queue entry
     entry.result      = currentResult.result;
@@ -1802,10 +1877,15 @@ This area will be used by the assessor to leave comments related to this criteri
     });
   });
 
-  // Grade on Enter in URL field
+  // Grade on Enter; update open-page button on URL change
   document.addEventListener('DOMContentLoaded', () => {
-    document.getElementById('student-url').addEventListener('keydown', e => {
-      if (e.key === 'Enter') gradeStudent();
+    const urlInput = document.getElementById('student-url');
+    urlInput.addEventListener('keydown', e => { if (e.key === 'Enter') gradeStudent(); });
+    urlInput.addEventListener('input', () => {
+      const btn = document.getElementById('open-page-btn');
+      const v = urlInput.value.trim();
+      btn.href = v || '#';
+      btn.style.display = v ? '' : 'none';
     });
   });
 </script>
