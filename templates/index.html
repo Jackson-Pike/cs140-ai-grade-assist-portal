@@ -1015,13 +1015,13 @@
 
     setupData = { api_key: apiKey, assignment_name: name, assignment_description: desc, rubric, criteria, crawl };
 
-    // Build batch queue from Canvas submission URLs (if available)
+    // Build batch queue from Canvas submissions — include all who submitted (URL or not)
     if (canvasSubmissions && Object.keys(canvasSubmissions).length) {
       const entries = Object.entries(canvasSubmissions)
-        .filter(([, s]) => s.submitted_url)
+        .filter(([, s]) => s.workflow_state !== 'unsubmitted')
         .map(([uid, s]) => ({
           canvas_id: uid,
-          url: s.submitted_url,
+          url: s.submitted_url || '',   // may be empty — user can type it in
           is_late: s.is_late || false,
           student: { id: uid, name: s.user_name || `Student ${uid}` },
           result: null,
@@ -1048,7 +1048,10 @@
     document.getElementById('edit-setup-btn').style.display = '';
     document.getElementById('grade-section').style.display = 'block';
 
-    if (batchQueue.length) renderStudentRail();
+    if (batchQueue.length) {
+      renderStudentRail();
+      document.getElementById('student-rail-card').style.display = 'block';
+    }
   }
 
   function editSetup() {
@@ -1616,12 +1619,20 @@ This area will be used by the assessor to leave comments related to this criteri
     showRubricPreview(setupCanvasCriteria);
 
     // Status summary
-    const withUrl      = Object.values(canvasSubmissions).filter(s => s.submitted_url).length;
-    const total        = Object.keys(canvasSubmissions).length;
-    const alreadyGraded = Object.values(canvasSubmissions).filter(s => s.graded).length;
-    let info = `✓ "${escHtml(data.assignment_name)}" · ${data.criteria.length} criteria · ${withUrl}/${total} students have URL submissions`;
+    const allSubs       = Object.values(canvasSubmissions);
+    const withUrl       = allSubs.filter(s => s.submitted_url).length;
+    const submitted     = allSubs.filter(s => s.workflow_state !== 'unsubmitted').length;
+    const total         = allSubs.length;
+    const alreadyGraded = allSubs.filter(s => s.graded).length;
+    const urlNote = withUrl < submitted
+      ? ` · <span style="color:var(--yellow)">⚠ only ${withUrl}/${submitted} submissions have a URL — others need manual entry</span>`
+      : ` · ${withUrl} with URL`;
+    let info = `✓ "${escHtml(data.assignment_name)}" · ${data.criteria.length} criteria · ${submitted}/${total} students submitted${urlNote}`;
     if (alreadyGraded) info += ` · <span style="color:var(--yellow)">⚠ ${alreadyGraded} already graded in Canvas</span>`;
     statusEl.innerHTML = `<span style="color:var(--green)">${info}</span>`;
+
+    // Enable SpeedGrader push now that we're connected
+    document.getElementById('canvas-push-btn').style.display = '';
   }
 
   function showRubricPreview(criteria) {
