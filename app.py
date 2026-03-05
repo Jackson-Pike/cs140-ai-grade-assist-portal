@@ -381,45 +381,94 @@ def _canvas_headers(token: str) -> dict:
     return {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
 
 
+def _canvas_get(url: str, token: str, params: dict = None) -> requests.Response:
+    return requests.get(url, headers=_canvas_headers(token), params=params, timeout=15)
+
+
+def _fetch_all_submissions(base: str, course_id: str, assignment_id: str, token: str) -> list:
+    """Fetch all submissions with rubric assessments, handling pagination."""
+    url = f"{base}/api/v1/courses/{course_id}/assignments/{assignment_id}/submissions"
+    params = {"include[]": "rubric_assessment", "per_page": 100}
+    results = []
+    while url:
+        resp = _canvas_get(url, token, params)
+        resp.raise_for_status()
+        results.extend(resp.json())
+        # Canvas uses Link header for pagination
+        url = None
+        link = resp.headers.get("Link", "")
+        for part in link.split(","):
+            if 'rel="next"' in part:
+                url = part.split(";")[0].strip().strip("<>")
+                params = None  # already encoded in next URL
+                break
+    return results
+
+
 @app.route("/api/canvas/fetch-rubric", methods=["POST"])
 def canvas_fetch_rubric():
     data = request.get_json(force=True)
-    token       = (data.get("token") or "").strip()
-    course_id   = (data.get("course_id") or "").strip()
+    token         = (data.get("token") or "").strip()
+    course_id     = (data.get("course_id") or "").strip()
     assignment_id = (data.get("assignment_id") or "").strip()
 
     if not all([token, course_id, assignment_id]):
         return jsonify({"error": "Token, Course ID, and Assignment ID are all required."}), 400
 
-    url = f"https://{CANVAS_INSTANCE}/api/v1/courses/{course_id}/assignments/{assignment_id}"
-    try:
-        resp = requests.get(url, headers=_canvas_headers(token), timeout=15)
-        if resp.status_code == 401:
-            return jsonify({"error": "Invalid Canvas API token."}), 401
-        if resp.status_code == 403:
-            return jsonify({"error": "Your account doesn't have permission to access this assignment."}), 403
-        if resp.status_code == 404:
-            return jsonify({"error": "Assignment not found — double-check the Course ID and Assignment ID."}), 404
-        resp.raise_for_status()
-    except requests.RequestException as e:
-        return jsonify({"error": str(e)}), 400
+    base = f"https://{CANVAS_INSTANCE}"
 
-    assignment = resp.json()
+    # Fetch assignment (rubric) and all submissions in parallel
+    import concurrent.futures
+    with concurrent.futures.ThreadPoolExecutor() as pool:
+        assignment_future   = pool.submit(_canvas_get, f"{base}/api/v1/courses/{course_id}/assignments/{assignment_id}", token)
+        submissions_future  = pool.submit(_fetch_all_submissions, base, course_id, assignment_id, token)
+
+        try:
+            assignment_resp = assignment_future.result()
+        except requests.RequestException as e:
+            return jsonify({"error": str(e)}), 400
+
+        if assignment_resp.status_code == 401:
+            return jsonify({"error": "Invalid Canvas API token."}), 401
+        if assignment_resp.status_code == 403:
+            return jsonify({"error": "Your account doesn't have permission to access this assignment."}), 403
+        if assignment_resp.status_code == 404:
+            return jsonify({"error": "Assignment not found — double-check the Course ID and Assignment ID."}), 404
+        assignment_resp.raise_for_status()
+
+        try:
+            raw_submissions = submissions_future.result()
+        except Exception:
+            raw_submissions = []  # non-fatal — carry on without submission states
+
+    assignment = assignment_resp.json()
     rubric = assignment.get("rubric", [])
     if not rubric:
         return jsonify({"error": "This assignment has no rubric attached in Canvas."}), 400
 
     criteria = [
-        {
-            "id": c["id"],
-            "description": c.get("description", ""),
-            "points": c.get("points", 0),
-        }
+        {"id": c["id"], "description": c.get("description", ""), "points": c.get("points", 0)}
         for c in rubric
     ]
+
+    # Build submission state map keyed by user_id (as string)
+    submissions = {}
+    for s in raw_submissions:
+        uid = str(s.get("user_id", ""))
+        if not uid:
+            continue
+        ra = s.get("rubric_assessment") or {}
+        submissions[uid] = {
+            "workflow_state": s.get("workflow_state", ""),
+            "score": s.get("score"),
+            "graded": s.get("workflow_state") == "graded",
+            "rubric_assessed": bool(ra),
+        }
+
     return jsonify({
         "criteria": criteria,
         "assignment_name": assignment.get("name", ""),
+        "submissions": submissions,
     })
 
 

@@ -491,6 +491,7 @@
     .student-pill.active { background: var(--blue); border-color: var(--blue); color: white; font-weight: 700; }
     .student-pill.graded { border-color: var(--yellow); color: var(--yellow); background: var(--yellow-light); }
     .student-pill.approved { border-color: var(--green); color: var(--green); background: var(--green-light); font-weight: 700; }
+    .student-pill.canvas-graded { border-color: #7c3aed; color: #7c3aed; background: #f5f3ff; }
     .pill-late { font-size: .7rem; opacity: .8; }
 
     /* ---- Batch student header (inside grade card) ---- */
@@ -854,6 +855,16 @@
     canvasRoster = data.students;
     assignmentColumn = data.assignment_column;
     assignmentPoints = data.assignment_points;
+
+    // Re-match any already-loaded batch submissions now that we have the roster
+    if (batchQueue.length) {
+      batchQueue.forEach(entry => {
+        if (!entry.student) {
+          entry.student = canvasRoster.find(s => s.id === entry.canvas_id) || null;
+        }
+      });
+      renderStudentRail();
+    }
 
     statusEl.textContent = `✓ ${canvasRoster.length} students · "${assignmentColumn}"`;
     statusEl.className = 'canvas-status ok';
@@ -1245,9 +1256,10 @@ This area will be used by the assessor to leave comments related to this criteri
   }
 
   // ---------- Canvas API ----------
-  let canvasConfig = null;    // {token, course_id, assignment_id}
-  let canvasCriteria = [];    // [{id, description, points}] from Canvas
-  let criterionMap = {};      // {our_criterion_name: canvas_criterion_id}
+  let canvasConfig = null;      // {token, course_id, assignment_id}
+  let canvasCriteria = [];      // [{id, description, points}] from Canvas
+  let criterionMap = {};        // {our_criterion_name: canvas_criterion_id}
+  let canvasSubmissions = {};   // {canvas_user_id: {graded, score, rubric_assessed}}
 
   function toggleCanvasAPI() {
     const toggle = document.getElementById('canvas-api-toggle');
@@ -1327,8 +1339,9 @@ This area will be used by the assessor to leave comments related to this criteri
       return;
     }
 
-    canvasConfig   = { token, course_id, assignment_id };
-    canvasCriteria = data.criteria;
+    canvasConfig      = { token, course_id, assignment_id };
+    canvasCriteria    = data.criteria;
+    canvasSubmissions = data.submissions || {};
 
     // Build criterion map using parsed rubric (if setup is already saved, use its rubric)
     const rubricText = document.getElementById('rubric').value;
@@ -1343,7 +1356,14 @@ This area will be used by the assessor to leave comments related to this criteri
     criterionMap = {};
     canvasCriteria.forEach(cc => { criterionMap[cc.description] = cc.id; });
 
-    statusEl.innerHTML = `<span style="color:var(--green);font-weight:600">✓ Connected — "${escHtml(data.assignment_name)}" · ${canvasCriteria.length} rubric criteria found</span>`;
+    const alreadyGraded = Object.values(canvasSubmissions).filter(s => s.graded).length;
+    const gradedNote = alreadyGraded > 0
+      ? ` · <span style="color:var(--yellow)">⚠ ${alreadyGraded} already graded in Canvas</span>`
+      : ` · <span style="color:var(--green)">0 graded yet</span>`;
+    statusEl.innerHTML = `<span style="color:var(--green);font-weight:600">✓ Connected — "${escHtml(data.assignment_name)}" · ${canvasCriteria.length} criteria${gradedNote}</span>`;
+
+    // Re-render rail now that we have submission states
+    if (batchQueue.length) renderStudentRail();
 
     // Show match preview table
     const preview = document.getElementById('canvas-match-preview');
@@ -1511,31 +1531,48 @@ This area will be used by the assessor to leave comments related to this criteri
     document.getElementById('grade-section').style.display = 'block';
   }
 
+  function getCanvasSubmission(entry) {
+    return entry.canvas_id ? (canvasSubmissions[entry.canvas_id] || null) : null;
+  }
+
   function renderStudentRail() {
     const scroll = document.getElementById('rail-scroll');
     scroll.innerHTML = '';
 
     batchQueue.forEach((entry, i) => {
       const name = entry.student
-        ? entry.student.name.split(',')[0].trim()  // just last name
+        ? entry.student.name.split(',')[0].trim()
         : `ID:${entry.canvas_id}`;
+
+      const sub = getCanvasSubmission(entry);
+      const canvasGraded = sub?.graded && !entry.approved;
 
       const pill = document.createElement('button');
       pill.className = 'student-pill' +
-        (i === batchIndex ? ' active' : '') +
-        (entry.approved ? ' approved' : entry.result ? ' graded' : '');
+        (i === batchIndex   ? ' active'        : '') +
+        (entry.approved     ? ' approved'       : '') +
+        (!entry.approved && entry.result ? ' graded' : '') +
+        (!entry.approved && !entry.result && canvasGraded ? ' canvas-graded' : '');
       pill.dataset.index = i;
+
+      let prefix = '';
+      if (entry.approved)  prefix = '✓ ';
+      else if (entry.result) prefix = '● ';
+      else if (canvasGraded) prefix = '◆ ';
+
       pill.innerHTML =
-        (entry.approved ? '&#10003; ' : entry.result ? '&#9679; ' : '') +
-        escHtml(name) +
-        (entry.is_late ? ' <span class="pill-late">&#128336;</span>' : '');
+        escHtml(prefix + name) +
+        (entry.is_late ? ' <span class="pill-late">🕐</span>' : '') +
+        (canvasGraded  ? ` <span class="pill-late" title="Score: ${sub.score ?? '?'}">(${sub.score ?? '?'})</span>` : '');
       pill.onclick = () => loadBatchStudent(i);
       scroll.appendChild(pill);
     });
 
-    const approved = batchQueue.filter(e => e.approved).length;
-    document.getElementById('rail-progress').textContent =
-      `${approved} / ${batchQueue.length} approved`;
+    const approved     = batchQueue.filter(e => e.approved).length;
+    const canvasGraded = batchQueue.filter(e => !e.approved && getCanvasSubmission(e)?.graded).length;
+    let progress = `${approved} / ${batchQueue.length} approved`;
+    if (canvasGraded) progress += ` · ${canvasGraded} already in Canvas`;
+    document.getElementById('rail-progress').textContent = progress;
   }
 
   function loadBatchStudent(index) {
@@ -1550,10 +1587,17 @@ This area will be used by the assessor to leave comments related to this criteri
     header.style.display = 'flex';
     document.getElementById('batch-name').textContent =
       entry.student ? entry.student.name : `Canvas ID: ${entry.canvas_id}`;
-    document.getElementById('batch-meta').textContent =
-      `${index + 1} of ${batchQueue.length}` +
-      (entry.is_late ? ' · ⏰ Late submission' : '') +
-      (entry.approved ? ' · ✓ Approved' : '');
+    const sub = getCanvasSubmission(entry);
+    const metaParts = [`${index + 1} of ${batchQueue.length}`];
+    if (entry.is_late) metaParts.push('⏰ Late submission');
+    if (entry.approved) metaParts.push('✓ Approved');
+    const metaEl = document.getElementById('batch-meta');
+    metaEl.textContent = metaParts.join(' · ');
+
+    if (sub?.graded && !entry.approved) {
+      metaEl.insertAdjacentHTML('beforeend',
+        ` · <span style="color:#7c3aed;font-weight:600">◆ Already graded in Canvas — score: ${sub.score ?? '?'}${sub.rubric_assessed ? ', rubric filled' : ''}</span>`);
+    }
 
     // Toggle buttons: batch mode uses Approve, not picker
     document.getElementById('save-btn').style.display = 'none';
