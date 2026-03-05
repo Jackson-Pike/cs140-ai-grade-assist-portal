@@ -58,7 +58,7 @@
     }
 
     /* ---- Layout ---- */
-    .container {
+    .setup-wrapper {
       max-width: 960px;
       margin: 0 auto;
       padding: 2rem 1.5rem;
@@ -186,7 +186,6 @@
     #assignment-badge .badge-meta { color: var(--gray-500); margin-top: .25rem; }
 
     /* ---- Grading section ---- */
-    #grade-section { display: none; }
     .url-row { display: flex; gap: .75rem; align-items: flex-end; }
     .url-row > div:first-child { flex: 1; }
 
@@ -446,7 +445,6 @@
     .canvas-status.err { background: var(--red-light);    color: var(--red); }
 
     /* ---- Student rail ---- */
-    #student-rail-card { display: none; }
     .rail-header {
       display: flex;
       align-items: center;
@@ -547,6 +545,113 @@
     }
     .session-table tr:last-child td { border-bottom: none; }
     .session-score { font-weight: 700; }
+
+  /* ---- Assignment chip in app-header ---- */
+  .assignment-chip {
+    display: flex; align-items: center; gap: .5rem;
+    margin-left: .75rem;
+    background: rgba(255,255,255,.15);
+    padding: .2rem .625rem;
+    border-radius: 6px;
+    font-size: .875rem; color: white;
+    max-width: 300px;
+  }
+  .assignment-chip span {
+    font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .assignment-chip button {
+    background: rgba(255,255,255,.2); color: white;
+    border: 1px solid rgba(255,255,255,.35);
+    border-radius: 5px; padding: .15rem .5rem;
+    font-size: .75rem; font-weight: 600; cursor: pointer; white-space: nowrap;
+  }
+  .assignment-chip button:hover { background: rgba(255,255,255,.3); }
+
+  /* ---- Ribbon ---- */
+  .ribbon {
+    display: flex; align-items: center; gap: .625rem;
+    padding: .4rem 1.25rem; min-height: 52px;
+    background: white; border-bottom: 1px solid var(--gray-200);
+    box-shadow: var(--shadow); overflow: hidden;
+    flex-shrink: 0;
+  }
+  .ribbon-rail {
+    display: flex; align-items: center; gap: .4rem;
+    flex: 1; min-width: 0; overflow: hidden;
+  }
+  .ribbon .rail-scroll {
+    display: flex; gap: .3rem; overflow-x: auto; flex: 1; min-width: 0;
+    scrollbar-width: none; padding: .1rem 0;
+  }
+  .ribbon .rail-scroll::-webkit-scrollbar { display: none; }
+  .ribbon .student-pill { flex-shrink: 0; }
+  .ribbon #rail-progress { font-size: .72rem; color: var(--gray-500); white-space: nowrap; flex-shrink: 0; }
+  .ribbon-student {
+    flex-shrink: 0; min-width: 0; max-width: 170px;
+    display: flex; flex-direction: column; justify-content: center;
+    padding: 0 .625rem;
+    border-left: 1px solid var(--gray-200);
+    border-right: 1px solid var(--gray-200);
+  }
+  .ribbon-student .batch-name {
+    font-weight: 700; font-size: .82rem; color: var(--gray-900);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .ribbon-student #batch-meta {
+    font-size: .7rem; color: var(--gray-500);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .ribbon-url { display: flex; align-items: center; gap: .35rem; flex-shrink: 0; }
+  .ribbon-url #student-url {
+    width: 290px; padding: .35rem .6rem;
+    border: 1px solid var(--gray-300); border-radius: 6px;
+    font-size: .85rem; font-family: inherit; color: var(--gray-900);
+  }
+  .ribbon-url #student-url:focus {
+    outline: none; border-color: var(--blue);
+    box-shadow: 0 0 0 3px rgba(37,99,235,.15);
+  }
+  .ribbon-sep { width: 1px; height: 22px; background: var(--gray-200); flex-shrink: 0; margin: 0 .125rem; }
+
+  /* ---- Setup wrapper ---- */
+  .setup-wrapper {
+    max-width: 960px; margin: 0 auto;
+    padding: 2rem 1.5rem;
+    display: flex; flex-direction: column; gap: 1.5rem;
+  }
+
+  /* ---- Main split ---- */
+  .main-split {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr;
+    height: calc(100vh - 56px - 52px);
+    overflow: hidden;
+    border-top: 1px solid var(--gray-200);
+  }
+  .panel-rubric {
+    overflow-y: auto;
+    padding: 1.25rem 1.5rem;
+    border-right: 1px solid var(--gray-200);
+    min-width: 0;
+  }
+  .panel-source {
+    display: flex; flex-direction: column;
+    overflow: hidden; min-width: 0;
+    border-left: 1px solid var(--gray-200);
+    background: white;
+  }
+  .panel-source-label {
+    padding: .3rem .75rem;
+    background: var(--gray-100); border-bottom: 1px solid var(--gray-200);
+    font-size: .7rem; font-weight: 700; color: var(--gray-500);
+    text-transform: uppercase; letter-spacing: .06em;
+    flex-shrink: 0;
+  }
+  .cm-panel-wrap { flex: 1; overflow: hidden; min-height: 0; }
+  .cm-panel-wrap .CodeMirror { height: 100%; min-height: 300px; }
+
+  /* ---- Session wrapper ---- */
+  .session-wrapper { padding: 1.5rem; background: var(--gray-50); border-top: 1px solid var(--gray-200); }
 
   /* ---- Canvas integration section ---- */
   .canvas-section {
@@ -662,12 +767,16 @@
 <header class="app-header">
   <div>
     <h1>CS 140 Assignment Grader</h1>
-    <span>HTML &amp; CSS — Powered by Claude AI</span>
+    <span style="font-size:.875rem;opacity:.8">HTML &amp; CSS — Powered by Claude AI</span>
+  </div>
+  <div class="assignment-chip" id="assignment-chip" style="display:none">
+    <span id="header-assignment-name"></span>
+    <button onclick="editSetup()">&#9998; Edit Setup</button>
   </div>
   <div class="header-badge" id="session-count">0 graded this session</div>
 </header>
 
-<div class="container">
+<div class="setup-wrapper" id="setup-wrapper">
 
   <!-- Resume banner -->
   <div class="resume-banner" id="resume-banner">
@@ -771,157 +880,126 @@
       </div>
     </div>
 
-    <!-- Assignment badge shown after saving -->
-    <div id="assignment-badge" style="margin: 0 1.5rem 1.5rem;">
-      <div class="badge-name" id="badge-name"></div>
-      <div class="badge-meta" id="badge-meta"></div>
-    </div>
-  </div>
+  </div><!-- /setup-card -->
+</div><!-- /setup-wrapper -->
 
-  <!-- ===== Student Rail (batch mode) ===== -->
-  <div class="card" id="student-rail-card">
-    <div class="rail-header">
-      <h2><span class="step-num">2</span> Students <span class="rail-progress" id="rail-progress"></span></h2>
-      <button class="btn btn-primary btn-sm" onclick="gradeNextUnreviewed()" id="grade-next-btn">&#9654; Grade Next Unreviewed</button>
-    </div>
+<!-- ===== RIBBON (shown after setup) ===== -->
+<div class="ribbon" id="ribbon" style="display:none">
+  <div class="ribbon-rail">
+    <button class="btn btn-outline btn-sm" onclick="navBatch(-1)" title="Previous student">&#8592;</button>
     <div class="rail-scroll" id="rail-scroll"></div>
+    <span id="rail-progress"></span>
+    <button class="btn btn-primary btn-sm" onclick="gradeNextUnreviewed()" id="grade-next-btn">&#9654; Next</button>
+  </div>
+  <div class="ribbon-student" id="batch-student-header">
+    <div class="batch-name" id="batch-name"></div>
+    <div id="batch-meta"></div>
+  </div>
+  <div class="ribbon-url">
+    <input type="url" id="student-url" placeholder="https://student.github.io/project/">
+    <a id="open-page-btn" href="#" target="_blank" class="btn btn-outline btn-sm" title="Open in new tab" style="display:none">&#8599;</a>
+    <button id="load-canvas-btn" class="btn btn-outline btn-sm" onclick="loadCanvasExistingGrade()" style="display:none" title="Load existing Canvas rubric">&#9660; Canvas</button>
+    <button class="btn btn-primary btn-sm" onclick="gradeStudent()" id="grade-btn">Grade &rarr;</button>
+  </div>
+  <div class="ribbon-sep"></div>
+  <button class="btn btn-outline btn-sm" onclick="toggleSessionPanel()">Session &rarr;</button>
+</div>
+
+<!-- ===== MAIN SPLIT (shown after setup) ===== -->
+<div class="main-split" id="grade-section" style="display:none">
+
+  <!-- LEFT: Rubric / Grading -->
+  <div class="panel-rubric">
+    <div id="loading">
+      <div class="spinner"></div>
+      <span id="loading-msg">Fetching site and grading with Claude…</span>
+    </div>
+    <div class="error-box" id="error-box" style="display:none"></div>
+
+    <div id="results" style="display:none">
+      <div class="results-header">
+        <h3 id="results-url"></h3>
+        <span class="score-pill" id="score-pill"></span>
+      </div>
+      <div class="pages-fetched" id="pages-fetched"></div>
+
+      <table class="rubric-table" id="rubric-table">
+        <thead>
+          <tr>
+            <th>Criterion</th>
+            <th style="width:110px; text-align:center">Score</th>
+          </tr>
+        </thead>
+        <tbody id="rubric-body"></tbody>
+        <tfoot>
+          <tr>
+            <td style="font-weight:700; padding:.75rem .875rem; border-top:2px solid var(--gray-200)">Total</td>
+            <td class="pts-cell" style="border-top:2px solid var(--gray-200)" id="total-cell"></td>
+          </tr>
+        </tfoot>
+      </table>
+
+      <div class="overall-feedback" id="overall-feedback"></div>
+
+      <details class="validation-panel" id="validation-panel" style="display:none">
+        <summary>
+          W3C Validation Details
+          <span id="val-html-badge" class="val-badge"></span>
+          <span id="val-css-badge"  class="val-badge"></span>
+        </summary>
+        <div class="val-body">
+          <div class="val-col"><h4>HTML</h4><ul class="val-list" id="val-html-list"></ul></div>
+          <div class="val-col"><h4>CSS</h4><ul class="val-list" id="val-css-list"></ul></div>
+        </div>
+      </details>
+
+      <div class="btn-row" style="margin-top:1rem">
+        <button class="btn btn-success btn-sm" id="save-btn" onclick="showStudentPicker()">&#10003; Save to session</button>
+        <button class="btn btn-primary btn-sm" id="approve-btn" style="display:none" onclick="approveAndNext()">&#10003; Approve &amp; Next &#8594;</button>
+      </div>
+
+      <div class="student-picker" id="student-picker">
+        <h4>Who is this student?</h4>
+        <div class="picker-row">
+          <select id="student-select"><option value="">-- Select student --</option></select>
+          <button class="btn btn-primary btn-sm" onclick="confirmSave()">Confirm &amp; Save</button>
+          <button class="btn btn-outline btn-sm" onclick="cancelPicker()">Cancel</button>
+        </div>
+      </div>
+    </div><!-- /#results -->
+  </div><!-- /.panel-rubric -->
+
+  <!-- CENTER: HTML source -->
+  <div class="panel-source">
+    <div class="panel-source-label">HTML</div>
+    <div class="cm-panel-wrap" id="cm-html-wrap"></div>
   </div>
 
-  <!-- ===== STEP 2/3: Grade a student ===== -->
-  <div class="card" id="grade-section">
-    <div class="card-header">
-      <h2><span class="step-num">2</span> Grade a Student</h2>
-    </div>
-    <div class="card-body">
-      <!-- Batch mode: current student header -->
-      <div id="batch-student-header">
-        <div>
-          <div class="batch-name" id="batch-name"></div>
-          <div style="font-size:.78rem; color:var(--gray-500)" id="batch-meta"></div>
-        </div>
-        <div class="batch-nav">
-          <button class="btn btn-outline btn-sm" onclick="navBatch(-1)">&#8592; Prev</button>
-          <button class="btn btn-outline btn-sm" onclick="navBatch(1)">Next &#8594;</button>
-        </div>
-      </div>
-
-      <div class="url-row">
-        <div>
-          <label>Student Website URL</label>
-          <input type="url" id="student-url" placeholder="https://student.github.io/project/">
-        </div>
-        <a id="open-page-btn" href="#" target="_blank" class="btn btn-outline" title="Open student page" style="display:none">&#8599;</a>
-        <button class="btn btn-primary" onclick="gradeStudent()" id="grade-btn">Grade &rarr;</button>
-        <button class="btn btn-outline" id="load-canvas-btn" onclick="loadCanvasExistingGrade()" style="display:none" title="Load existing Canvas rubric scores without an AI call">&#9660; Load from Canvas</button>
-      </div>
-
-      <div id="loading">
-        <div class="spinner"></div>
-        <span id="loading-msg">Fetching site and grading with Claude…</span>
-      </div>
-
-      <div class="error-box" id="error-box" style="display:none"></div>
-
-      <!-- Results -->
-      <div id="results">
-        <div class="results-header">
-          <h3 id="results-url"></h3>
-          <span class="score-pill" id="score-pill"></span>
-        </div>
-
-        <div class="pages-fetched" id="pages-fetched"></div>
-
-        <table class="rubric-table" id="rubric-table">
-          <thead>
-            <tr>
-              <th>Criterion</th>
-              <th style="width:110px; text-align:center">Score</th>
-            </tr>
-          </thead>
-          <tbody id="rubric-body"></tbody>
-          <tfoot>
-            <tr>
-              <td style="font-weight:700; padding:.75rem .875rem; border-top: 2px solid var(--gray-200)">Total</td>
-              <td class="pts-cell" style="border-top: 2px solid var(--gray-200)" id="total-cell"></td>
-            </tr>
-          </tfoot>
-        </table>
-
-        <div class="overall-feedback" id="overall-feedback"></div>
-
-        <details class="validation-panel" id="validation-panel" style="display:none">
-          <summary>
-            W3C Validation Details
-            <span id="val-html-badge" class="val-badge"></span>
-            <span id="val-css-badge"  class="val-badge"></span>
-          </summary>
-          <div class="val-body">
-            <div class="val-col">
-              <h4>HTML</h4>
-              <ul class="val-list" id="val-html-list"></ul>
-            </div>
-            <div class="val-col">
-              <h4>CSS</h4>
-              <ul class="val-list" id="val-css-list"></ul>
-            </div>
-          </div>
-        </details>
-
-        <details class="source-panel" id="source-panel" style="display:none">
-          <summary>Source Code</summary>
-          <div class="source-tabs">
-            <button class="src-tab active" id="src-tab-html" onclick="switchSourceTab('html')">HTML</button>
-            <button class="src-tab" id="src-tab-css" onclick="switchSourceTab('css')">CSS</button>
-          </div>
-          <div id="cm-html-wrap"></div>
-          <div id="cm-css-wrap" style="display:none"></div>
-        </details>
-
-        <div class="btn-row" style="margin-top:1rem">
-          <button class="btn btn-success btn-sm" id="save-btn" onclick="showStudentPicker()">
-            &#10003; Save to session
-          </button>
-          <button class="btn btn-primary btn-sm" id="approve-btn" style="display:none" onclick="approveAndNext()">
-            &#10003; Approve &amp; Next &#8594;
-          </button>
-        </div>
-
-        <!-- Student picker — shown after clicking Save -->
-        <div class="student-picker" id="student-picker">
-          <h4>Who is this student?</h4>
-          <div class="picker-row">
-            <select id="student-select">
-              <option value="">-- Select student --</option>
-            </select>
-            <button class="btn btn-primary btn-sm" onclick="confirmSave()">Confirm &amp; Save</button>
-            <button class="btn btn-outline btn-sm" onclick="cancelPicker()">Cancel</button>
-          </div>
-        </div>
-      </div>
-    </div>
+  <!-- RIGHT: CSS source -->
+  <div class="panel-source">
+    <div class="panel-source-label">CSS</div>
+    <div class="cm-panel-wrap" id="cm-css-wrap"></div>
   </div>
 
-  <!-- ===== STEP 3: Session log & export ===== -->
+</div><!-- /.main-split -->
+
+<!-- ===== SESSION LOG (shown on demand) ===== -->
+<div class="session-wrapper" id="session-wrapper" style="display:none">
   <div class="card" id="session-section">
     <div class="card-header">
-      <h2><span class="step-num">3</span> Graded This Session</h2>
-      <div style="display:flex; gap:.5rem; flex-wrap:wrap">
+      <h2>Session Log</h2>
+      <div style="display:flex; gap:.5rem; flex-wrap:wrap; align-items:center">
         <button class="btn btn-outline btn-sm" onclick="saveSession()">&#128190; Save Session</button>
         <button class="btn btn-outline btn-sm" onclick="exportCSV()">&#8595; Detailed CSV</button>
         <button class="btn btn-success btn-sm" id="canvas-export-btn" onclick="exportCanvasCSV()" style="display:none">&#8595; Score CSV</button>
         <button class="btn btn-primary btn-sm" id="canvas-push-btn" onclick="pushToCanvas()" style="display:none">&#9650; Push to Canvas SpeedGrader</button>
+        <button class="btn btn-outline btn-sm" onclick="toggleSessionPanel()">&#10005; Close</button>
       </div>
     </div>
     <div class="card-body" style="padding:0">
       <table class="session-table">
         <thead>
-          <tr>
-            <th>Student</th>
-            <th>URL</th>
-            <th>Score</th>
-            <th>%</th>
-            <th>Saved at</th>
-          </tr>
+          <tr><th>Student</th><th>URL</th><th>Score</th><th>%</th><th>Saved at</th></tr>
         </thead>
         <tbody id="session-body"></tbody>
       </table>
@@ -931,8 +1009,7 @@
       </div>
     </div>
   </div>
-
-</div><!-- /container -->
+</div><!-- /session-wrapper -->
 
 <script>
   // ---------- State ----------
@@ -1034,30 +1111,27 @@
       }
     }
 
-    document.getElementById('setup-form-body').style.display = 'none';
-    const badge = document.getElementById('assignment-badge');
-    badge.style.display = 'block';
-    document.getElementById('badge-name').textContent = name || 'Unnamed Assignment';
+    // Switch to grading mode
+    document.getElementById('setup-wrapper').style.display = 'none';
+    document.getElementById('ribbon').style.display = 'flex';
+    document.getElementById('grade-section').style.display = 'grid';
 
-    const criCount = criteria ? criteria.length
-      : rubric.split('\n').filter(l => /^\d+\s*pts?$/i.test(l.trim())).length;
-    const queueNote = batchQueue.length ? ` · ${batchQueue.length} students queued` : (canvasRoster.length ? ` · ${canvasRoster.length} students` : '');
-    document.getElementById('badge-meta').textContent =
-      `${criCount} criteria · Crawl: ${crawl ? 'on' : 'off'}${queueNote}`;
+    // Assignment chip in header
+    const chip = document.getElementById('assignment-chip');
+    chip.style.display = 'flex';
+    document.getElementById('header-assignment-name').textContent = name || 'Assignment';
 
-    document.getElementById('edit-setup-btn').style.display = '';
-    document.getElementById('grade-section').style.display = 'block';
-
-    if (batchQueue.length) {
-      renderStudentRail();
-      document.getElementById('student-rail-card').style.display = 'block';
-    }
+    if (batchQueue.length) renderStudentRail();
   }
 
   function editSetup() {
+    document.getElementById('setup-wrapper').style.display = '';
     document.getElementById('setup-form-body').style.display = 'block';
     document.getElementById('assignment-badge').style.display = 'none';
-    document.getElementById('edit-setup-btn').style.display = 'none';
+    document.getElementById('ribbon').style.display = 'none';
+    document.getElementById('grade-section').style.display = 'none';
+    document.getElementById('assignment-chip').style.display = 'none';
+    window.scrollTo(0, 0);
   }
 
   function loadDemo() {
@@ -1210,7 +1284,7 @@ This area will be used by the assessor to leave comments related to this criteri
   let cmHtml = null, cmCss = null;
 
   function initSourceEditors() {
-    if (cmHtml) return; // already created
+    if (cmHtml) return;
     const opts = {
       lineNumbers: true,
       readOnly: true,
@@ -1219,8 +1293,9 @@ This area will be used by the assessor to leave comments related to this criteri
     };
     cmHtml = CodeMirror(document.getElementById('cm-html-wrap'), { ...opts, mode: 'htmlmixed' });
     cmCss  = CodeMirror(document.getElementById('cm-css-wrap'),  { ...opts, mode: 'css' });
-    cmHtml.setSize(null, 380);
-    cmCss.setSize(null, 380);
+    // Height is driven by CSS (cm-panel-wrap flex:1 → .CodeMirror height:100%)
+    cmHtml.setSize('100%', '100%');
+    cmCss.setSize('100%', '100%');
   }
 
   function setVnuMarkers(cm, errors) {
@@ -1239,49 +1314,21 @@ This area will be used by the assessor to leave comments related to this criteri
   }
 
   function renderSource(source, validation) {
-    const panel = document.getElementById('source-panel');
-    if (!source || (!source.html && !source.css)) {
-      panel.style.display = 'none';
-      return;
-    }
-    panel.style.display = '';
-
     initSourceEditors();
 
-    cmHtml.setValue(source.html || '');
-    cmCss.setValue(source.css || '');
+    cmHtml.setValue((source && source.html) || '');
+    cmCss.setValue((source && source.css) || '');
 
     if (validation) {
       setVnuMarkers(cmHtml, [...(validation.html_errors || []), ...(validation.html_warnings || [])]);
       setVnuMarkers(cmCss,  [...(validation.css_errors  || []), ...(validation.css_warnings  || [])]);
+    } else {
+      if (cmHtml) { cmHtml.clearGutter('cm-errors'); cmHtml.eachLine(lh => cmHtml.removeLineClass(lh, 'background', 'cm-error-line')); }
+      if (cmCss)  { cmCss.clearGutter('cm-errors');  cmCss.eachLine(lh => cmCss.removeLineClass(lh, 'background', 'cm-error-line')); }
     }
 
-    // Refresh layout after potential hidden→visible transition
-    setTimeout(() => {
-      if (document.getElementById('source-panel').open) {
-        cmHtml.refresh();
-        cmCss.refresh();
-      }
-    }, 50);
+    setTimeout(() => { if (cmHtml) cmHtml.refresh(); if (cmCss) cmCss.refresh(); }, 30);
   }
-
-  function switchSourceTab(tab) {
-    document.getElementById('cm-html-wrap').style.display = tab === 'html' ? '' : 'none';
-    document.getElementById('cm-css-wrap').style.display  = tab === 'css'  ? '' : 'none';
-    document.getElementById('src-tab-html').classList.toggle('active', tab === 'html');
-    document.getElementById('src-tab-css').classList.toggle('active', tab === 'css');
-    // Refresh the now-visible editor so it renders correctly
-    if (tab === 'html' && cmHtml) cmHtml.refresh();
-    if (tab === 'css'  && cmCss)  cmCss.refresh();
-  }
-
-  // Refresh CodeMirror when the details panel is opened
-  document.addEventListener('toggle', e => {
-    if (e.target && e.target.id === 'source-panel' && e.target.open) {
-      if (cmHtml) cmHtml.refresh();
-      if (cmCss)  cmCss.refresh();
-    }
-  }, true);
 
   function renderResults(url, data) {
     const { result, pages_fetched, validation, source } = data;
@@ -1958,27 +2005,22 @@ This area will be used by the assessor to leave comments related to this criteri
     batchIndex        = snapshot.batchIndex ?? -1;
 
     if (setupData) {
-      // Re-populate form fields
+      // Re-populate form fields (in case user wants to edit)
       document.getElementById('assignment-name').value        = setupData.assignment_name || '';
       document.getElementById('assignment-description').value = setupData.assignment_description || '';
       document.getElementById('rubric').value                 = setupData.rubric || '';
       document.getElementById('crawl-pages').checked          = setupData.crawl || false;
-
-      // If criteria were saved, show the preview table
       if (setupData.criteria && setupData.criteria.length) {
         setupCanvasCriteria = setupData.criteria;
         showRubricPreview(setupCanvasCriteria);
       }
 
-      // Show badge, hide form
-      document.getElementById('setup-form-body').style.display = 'none';
-      document.getElementById('assignment-badge').style.display = 'block';
-      document.getElementById('edit-setup-btn').style.display = '';
-      document.getElementById('badge-name').textContent = setupData.assignment_name || 'Unnamed Assignment';
-      const queueNote = batchQueue.length ? ` · ${batchQueue.length} students queued` : (canvasRoster.length ? ` · ${canvasRoster.length} students` : '');
-      document.getElementById('badge-meta').textContent =
-        `Resumed session · ${sessionGrades.length} graded${queueNote}`;
-      document.getElementById('grade-section').style.display = 'block';
+      // Switch to grading mode
+      document.getElementById('setup-wrapper').style.display = 'none';
+      document.getElementById('ribbon').style.display = 'flex';
+      document.getElementById('grade-section').style.display = 'grid';
+      document.getElementById('assignment-chip').style.display = 'flex';
+      document.getElementById('header-assignment-name').textContent = setupData.assignment_name || 'Assignment';
     }
 
     // Re-populate student picker dropdown
@@ -2009,15 +2051,12 @@ This area will be used by the assessor to leave comments related to this criteri
     // Restore batch queue
     if (batchQueue.length) {
       renderStudentRail();
-      document.getElementById('student-rail-card').style.display = 'block';
-      document.getElementById('grade-section').style.display = 'block';
       if (batchIndex >= 0) loadBatchStudent(batchIndex);
     }
 
     // Render session table
     if (sessionGrades.length) {
       refreshSessionTable();
-      document.getElementById('session-section').style.display = 'block';
     }
 
     // Hide resume banner
@@ -2031,7 +2070,12 @@ This area will be used by the assessor to leave comments related to this criteri
   }
   function hideResults() {
     document.getElementById('results').style.display = 'none';
-    document.getElementById('source-panel').style.display = 'none';
+  }
+
+  function toggleSessionPanel() {
+    const w = document.getElementById('session-wrapper');
+    w.style.display = w.style.display === 'none' ? '' : 'none';
+    if (w.style.display !== 'none') w.scrollIntoView({ behavior: 'smooth' });
   }
   function showError(msg) {
     const el = document.getElementById('error-box');
