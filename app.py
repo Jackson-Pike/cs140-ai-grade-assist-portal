@@ -297,9 +297,16 @@ def grade():
     rubric_text = (data.get("rubric") or "").strip()
     criteria_direct = data.get("criteria")  # pre-parsed array from Canvas, if provided
     crawl = bool(data.get("crawl", False))
+    include_ai = bool(data.get("include_ai", True))
 
-    if not all([api_key, student_url, description]):
-        return jsonify({"error": "API key, student URL, and assignment description are required."}), 400
+    if not student_url:
+        return jsonify({"error": "Student URL is required."}), 400
+
+    if include_ai:
+        if not api_key:
+            return jsonify({"error": "Anthropic API key is required when Include AI feedback is enabled."}), 400
+        if not description:
+            return jsonify({"error": "Assignment description is required when Include AI feedback is enabled."}), 400
 
     if criteria_direct:
         criteria = [{"name": c["name"], "max_points": c["max_points"]} for c in criteria_direct]
@@ -318,17 +325,27 @@ def grade():
     if not pages:
         return jsonify({"error": "No pages could be fetched from that URL."}), 400
 
-    # Run W3C validation (best-effort — grading continues even if it fails)
+    # Always run W3C validation
     validation = validate_with_vnu(pages)
 
-    try:
-        result = grade_with_claude(description, criteria, pages, api_key, validation)
-    except anthropic.AuthenticationError:
-        return jsonify({"error": "Invalid Anthropic API key."}), 401
-    except json.JSONDecodeError as e:
-        return jsonify({"error": f"Claude returned malformed JSON: {e}"}), 500
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+    if include_ai:
+        try:
+            result = grade_with_claude(description, criteria, pages, api_key, validation)
+        except anthropic.AuthenticationError:
+            return jsonify({"error": "Invalid Anthropic API key."}), 401
+        except json.JSONDecodeError as e:
+            return jsonify({"error": f"Claude returned malformed JSON: {e}"}), 500
+        except Exception as e:
+            return jsonify({"error": str(e)}), 500
+    else:
+        # Manual grading: return empty rubric for the instructor to fill in
+        result = {
+            "criteria": [
+                {"name": c["name"], "max_points": c["max_points"], "earned_points": 0, "feedback": ""}
+                for c in criteria
+            ],
+            "overall_feedback": "",
+        }
 
     first_page = next(iter(pages.values()), {})
     source = {"html": first_page.get("html", ""), "css": first_page.get("css", "")}

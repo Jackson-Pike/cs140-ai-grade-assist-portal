@@ -899,6 +899,10 @@
     <input type="url" id="student-url" placeholder="https://student.github.io/project/">
     <a id="open-page-btn" href="#" target="_blank" class="btn btn-outline btn-sm" title="Open in new tab" style="display:none">&#8599;</a>
     <button id="load-canvas-btn" class="btn btn-outline btn-sm" onclick="loadCanvasExistingGrade()" style="display:none" title="Load existing Canvas rubric">&#9660; Canvas</button>
+    <label id="include-ai-label" style="display:flex;align-items:center;gap:.35rem;font-size:.78rem;color:var(--gray-700);white-space:nowrap;cursor:pointer;user-select:none">
+      <input type="checkbox" id="include-ai" checked style="accent-color:var(--blue)">
+      AI feedback
+    </label>
     <button class="btn btn-primary btn-sm" onclick="gradeStudent()" id="grade-btn">Grade &rarr;</button>
   </div>
   <div class="ribbon-sep"></div>
@@ -1079,7 +1083,6 @@
     const crawl  = document.getElementById('crawl-pages').checked;
     const usingCanvasRubric = document.getElementById('rubric-canvas-view').style.display !== 'none';
 
-    if (!apiKey) return alert('Please enter your Anthropic API key.');
     if (!desc)   return alert('Please enter an assignment description.');
 
     // Determine criteria source
@@ -1190,6 +1193,15 @@ This area will be used by the assessor to leave comments related to this criteri
     const url = document.getElementById('student-url').value.trim();
     if (!url) return alert('Enter a student URL.');
 
+    const includeAi = document.getElementById('include-ai').checked;
+    if (includeAi && !setupData.api_key) {
+      return alert('An Anthropic API key is required for AI feedback. Uncheck "AI feedback" to grade manually, or add your API key in Assignment Setup.');
+    }
+
+    document.getElementById('loading-msg').textContent = includeAi
+      ? 'Fetching site and grading with Claude…'
+      : 'Fetching site and running W3C validation…';
+
     setLoading(true);
     hideResults();
     hideError();
@@ -1198,7 +1210,7 @@ This area will be used by the assessor to leave comments related to this criteri
       const res = await fetch('/api/grade', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...setupData, url }),
+        body: JSON.stringify({ ...setupData, url, include_ai: includeAi }),
       });
       const data = await res.json();
 
@@ -1384,7 +1396,12 @@ This area will be used by the assessor to leave comments related to this criteri
 
     // Overall feedback
     const fb = document.getElementById('overall-feedback');
-    fb.innerHTML = `<strong>Overall feedback</strong>${escHtml(result.overall_feedback || '')}`;
+    if (result.overall_feedback) {
+      fb.innerHTML = `<strong>Overall feedback</strong>${escHtml(result.overall_feedback)}`;
+      fb.style.display = '';
+    } else {
+      fb.style.display = 'none';
+    }
 
     renderValidation(validation);
     renderSource(source, validation);
