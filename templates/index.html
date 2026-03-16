@@ -1259,21 +1259,21 @@ This area will be used by the assessor to leave comments related to this criteri
     openBtn.href = url;
     openBtn.style.display = '';
 
-    criteria.forEach(c => {
+    criteria.forEach((c, i) => {
       const tr = document.createElement('tr');
       tr.innerHTML = `
         <td>
           <div class="criterion-name">${escHtml(c.name)}</div>
-          <textarea class="criterion-feedback" rows="2">${escHtml(c.feedback || '')}</textarea>
+          <textarea class="criterion-feedback" rows="2" tabindex="-1">${escHtml(c.feedback || '')}</textarea>
         </td>
         <td class="pts-cell">
           <div class="score-control">
-            <button class="score-btn" title="Decrease" onclick="adjustScore(this,-1)">&#9660;</button>
-            <input type="number" class="score-input" value="${c.earned_points}"
+            <button class="score-btn" tabindex="-1" title="Decrease" onclick="adjustScore(this,-1)">&#9660;</button>
+            <input type="number" class="score-input" tabindex="${i+1}" value="${c.earned_points}"
               min="0" max="${c.max_points}" data-max="${c.max_points}"
               oninput="updateTotals()">
             <span class="score-denom">/ ${c.max_points}</span>
-            <button class="score-btn" title="Increase" onclick="adjustScore(this,1)">&#9650;</button>
+            <button class="score-btn" tabindex="-1" title="Increase" onclick="adjustScore(this,1)">&#9650;</button>
           </div>
         </td>
       `;
