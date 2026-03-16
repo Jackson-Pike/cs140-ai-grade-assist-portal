@@ -261,7 +261,27 @@
     .rubric-table tr:last-child td { border-bottom: none; }
     .rubric-table tr:hover td { background: var(--gray-50); }
     .criterion-name { font-weight: 600; color: var(--gray-900); }
-    .criterion-feedback { color: var(--gray-600, #4b5563); margin-top: .25rem; line-height: 1.5; }
+    .criterion-feedback {
+      width: 100%;
+      margin-top: .375rem;
+      padding: .375rem .5rem;
+      border: 1px solid var(--gray-200);
+      border-radius: 5px;
+      font-size: .825rem;
+      font-family: inherit;
+      color: var(--gray-700);
+      line-height: 1.5;
+      resize: vertical;
+      min-height: 3.5rem;
+      background: var(--gray-50);
+      transition: border-color .15s;
+    }
+    .criterion-feedback:focus {
+      outline: none;
+      border-color: var(--blue);
+      background: white;
+      box-shadow: 0 0 0 2px rgba(37,99,235,.1);
+    }
     .pts-cell { text-align: center; white-space: nowrap; font-weight: 700; }
     .pts-full { color: var(--green); }
     .pts-partial { color: var(--yellow); }
@@ -448,6 +468,67 @@
     .canvas-status.ok  { background: var(--green-light);  color: var(--green); }
     .canvas-status.err { background: var(--red-light);    color: var(--red); }
 
+    /* ---- Student rail ---- */
+    #student-rail-card { display: none; }
+    .rail-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: .75rem 1.25rem;
+      background: var(--gray-50);
+      border-bottom: 1px solid var(--gray-200);
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+    .rail-header h2 { font-size: 1rem; font-weight: 700; display: flex; align-items: center; gap: .5rem; }
+    .rail-progress { font-size: .8rem; color: var(--gray-500); }
+    .rail-scroll {
+      display: flex;
+      overflow-x: auto;
+      gap: .5rem;
+      padding: .75rem 1.25rem;
+      scrollbar-width: thin;
+    }
+    .rail-scroll::-webkit-scrollbar { height: 4px; }
+    .rail-scroll::-webkit-scrollbar-thumb { background: var(--gray-300); border-radius: 2px; }
+    .student-pill {
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      gap: .3rem;
+      padding: .35rem .8rem;
+      border-radius: 999px;
+      border: 1.5px solid var(--gray-300);
+      background: white;
+      font-size: .8rem;
+      font-weight: 500;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all .12s;
+      color: var(--gray-700);
+    }
+    .student-pill:hover  { border-color: var(--blue); color: var(--blue); }
+    .student-pill.active { background: var(--blue); border-color: var(--blue); color: white; font-weight: 700; }
+    .student-pill.graded { border-color: var(--yellow); color: var(--yellow); background: var(--yellow-light); }
+    .student-pill.approved { border-color: var(--green); color: var(--green); background: var(--green-light); font-weight: 700; }
+    .student-pill.canvas-graded { border-color: #7c3aed; color: #7c3aed; background: #f5f3ff; }
+    .pill-late { font-size: .7rem; opacity: .8; }
+
+    /* ---- Batch student header (inside grade card) ---- */
+    #batch-student-header {
+      display: none;
+      align-items: center;
+      gap: .75rem;
+      padding: .75rem 1rem;
+      background: var(--blue-light);
+      border-radius: 8px;
+      margin-bottom: 1rem;
+      font-size: .875rem;
+      flex-wrap: wrap;
+    }
+    #batch-student-header .batch-name { font-weight: 700; color: var(--blue-dark); font-size: 1rem; }
+    #batch-student-header .batch-nav { margin-left: auto; display: flex; gap: .5rem; }
+
     /* ---- Resume banner ---- */
     .resume-banner {
       background: white;
@@ -489,7 +570,64 @@
     }
     .session-table tr:last-child td { border-bottom: none; }
     .session-score { font-weight: 700; }
+
+  /* ---- Source viewer ---- */
+  .source-panel {
+    border: 1px solid var(--gray-200);
+    border-radius: 8px;
+    overflow: hidden;
+    margin-top: 1rem;
+  }
+  .source-panel summary {
+    padding: .625rem 1rem;
+    background: var(--gray-50);
+    font-size: .875rem;
+    font-weight: 600;
+    color: var(--gray-700);
+    cursor: pointer;
+    list-style: none;
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    user-select: none;
+  }
+  .source-panel summary::-webkit-details-marker { display: none; }
+  .source-panel summary::before { content: "▶"; font-size: .65rem; transition: transform .15s; }
+  .source-panel[open] summary::before { transform: rotate(90deg); }
+  .source-tabs {
+    display: flex;
+    border-bottom: 1px solid var(--gray-200);
+    background: var(--gray-100);
+  }
+  .src-tab {
+    padding: .4rem 1rem;
+    font-size: .8rem;
+    font-weight: 600;
+    border: none;
+    background: none;
+    cursor: pointer;
+    color: var(--gray-500);
+    border-bottom: 2px solid transparent;
+  }
+  .src-tab.active { color: var(--blue); border-bottom-color: var(--blue); background: white; }
+  .src-tab:hover:not(.active) { color: var(--gray-700); background: var(--gray-50); }
+  .cm-error-marker {
+    width: 8px; height: 8px;
+    background: var(--red);
+    border-radius: 50%;
+    display: inline-block;
+    margin: 4px 2px;
+    cursor: help;
+  }
+  .cm-error-line { background: #fff1f1 !important; }
+  .cm-warn-line  { background: #fffbeb !important; }
+  .CodeMirror { font-size: .8rem; height: 380px; border: none; }
   </style>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/xml/xml.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/css/css.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/htmlmixed/htmlmixed.min.js"></script>
 </head>
 <body>
 
@@ -544,11 +682,20 @@
             placeholder="Paste your Canvas rubric here. Example:&#10;&#10;This criterion is linked to a Learning Outcome&#10;HTML page has a HEADER with a title&#10;This area will be used by the assessor to leave comments...&#10;5 pts&#10;&#10;..."></textarea>
         </div>
 
-        <div>
-          <label>Canvas Gradebook CSV <span class="hint">(optional — enables Canvas import export)</span></label>
-          <div class="canvas-upload-row">
-            <input type="file" id="canvas-csv-file" accept=".csv" onchange="handleCanvasFile(this)">
-            <span id="canvas-csv-status" class="canvas-status"></span>
+        <div class="form-row">
+          <div>
+            <label>Canvas Gradebook CSV <span class="hint">(optional — enables Canvas export)</span></label>
+            <div class="canvas-upload-row">
+              <input type="file" id="canvas-csv-file" accept=".csv" onchange="handleCanvasFile(this)">
+              <span id="canvas-csv-status" class="canvas-status"></span>
+            </div>
+          </div>
+          <div>
+            <label>Submissions Folder <span class="hint">(select all .html files — pre-fills student URLs)</span></label>
+            <div class="canvas-upload-row">
+              <input type="file" id="submissions-files" accept=".html" multiple onchange="handleSubmissionsFiles(this)">
+              <span id="submissions-status" class="canvas-status"></span>
+            </div>
           </div>
         </div>
 
@@ -609,18 +756,41 @@
     </div>
   </div>
 
-  <!-- ===== STEP 2: Grade a student ===== -->
+  <!-- ===== Student Rail (batch mode) ===== -->
+  <div class="card" id="student-rail-card">
+    <div class="rail-header">
+      <h2><span class="step-num">2</span> Students <span class="rail-progress" id="rail-progress"></span></h2>
+      <button class="btn btn-primary btn-sm" onclick="gradeNextUnreviewed()" id="grade-next-btn">&#9654; Grade Next Unreviewed</button>
+    </div>
+    <div class="rail-scroll" id="rail-scroll"></div>
+  </div>
+
+  <!-- ===== STEP 2/3: Grade a student ===== -->
   <div class="card" id="grade-section">
     <div class="card-header">
       <h2><span class="step-num">2</span> Grade a Student</h2>
     </div>
     <div class="card-body">
+      <!-- Batch mode: current student header -->
+      <div id="batch-student-header">
+        <div>
+          <div class="batch-name" id="batch-name"></div>
+          <div style="font-size:.78rem; color:var(--gray-500)" id="batch-meta"></div>
+        </div>
+        <div class="batch-nav">
+          <button class="btn btn-outline btn-sm" onclick="navBatch(-1)">&#8592; Prev</button>
+          <button class="btn btn-outline btn-sm" onclick="navBatch(1)">Next &#8594;</button>
+        </div>
+      </div>
+
       <div class="url-row">
         <div>
           <label>Student Website URL</label>
           <input type="url" id="student-url" placeholder="https://student.github.io/project/">
         </div>
+        <a id="open-page-btn" href="#" target="_blank" class="btn btn-outline" title="Open student page" style="display:none">&#8599;</a>
         <button class="btn btn-primary" onclick="gradeStudent()" id="grade-btn">Grade &rarr;</button>
+        <button class="btn btn-outline" id="load-canvas-btn" onclick="loadCanvasExistingGrade()" style="display:none" title="Load existing Canvas rubric scores without an AI call">&#9660; Load from Canvas</button>
       </div>
 
       <div id="loading">
@@ -675,9 +845,22 @@
           </div>
         </details>
 
+        <details class="source-panel" id="source-panel" style="display:none">
+          <summary>Source Code</summary>
+          <div class="source-tabs">
+            <button class="src-tab active" id="src-tab-html" onclick="switchSourceTab('html')">HTML</button>
+            <button class="src-tab" id="src-tab-css" onclick="switchSourceTab('css')">CSS</button>
+          </div>
+          <div id="cm-html-wrap"></div>
+          <div id="cm-css-wrap" style="display:none"></div>
+        </details>
+
         <div class="btn-row" style="margin-top:1rem">
           <button class="btn btn-success btn-sm" id="save-btn" onclick="showStudentPicker()">
             &#10003; Save to session
+          </button>
+          <button class="btn btn-primary btn-sm" id="approve-btn" style="display:none" onclick="approveAndNext()">
+            &#10003; Approve &amp; Next &#8594;
           </button>
         </div>
 
@@ -761,6 +944,16 @@
     canvasRoster = data.students;
     assignmentColumn = data.assignment_column;
     assignmentPoints = data.assignment_points;
+
+    // Re-match any already-loaded batch submissions now that we have the roster
+    if (batchQueue.length) {
+      batchQueue.forEach(entry => {
+        if (!entry.student) {
+          entry.student = canvasRoster.find(s => s.id === entry.canvas_id) || null;
+        }
+      });
+      renderStudentRail();
+    }
 
     statusEl.textContent = `✓ ${canvasRoster.length} students · "${assignmentColumn}"`;
     statusEl.className = 'canvas-status ok';
@@ -891,6 +1084,18 @@ This area will be used by the assessor to leave comments related to this criteri
       renderResults(url, data);
       if (data.criteria_parsed) refineCriterionMap(data.criteria_parsed);
 
+      // Batch mode: store result in queue, show Approve button
+      if (batchIndex >= 0) {
+        batchQueue[batchIndex].result        = data.result;
+        batchQueue[batchIndex].validation    = data.validation;
+        batchQueue[batchIndex].source        = data.source;
+        batchQueue[batchIndex].pages_fetched = data.pages_fetched;
+        batchQueue[batchIndex].criteria_parsed = data.criteria_parsed;
+        document.getElementById('approve-btn').style.display = '';
+        document.getElementById('save-btn').style.display = 'none';
+        renderStudentRail();
+      }
+
     } catch (err) {
       showError('Network error: ' + err.message);
     } finally {
@@ -948,8 +1153,85 @@ This area will be used by the assessor to leave comments related to this criteri
     cBadge.className = `val-badge ${cCls}`;
   }
 
+  // ---------- Source viewer ----------
+  let cmHtml = null, cmCss = null;
+
+  function initSourceEditors() {
+    if (cmHtml) return; // already created
+    const opts = {
+      lineNumbers: true,
+      readOnly: true,
+      lineWrapping: false,
+      gutters: ['CodeMirror-linenumbers', 'cm-errors'],
+    };
+    cmHtml = CodeMirror(document.getElementById('cm-html-wrap'), { ...opts, mode: 'htmlmixed' });
+    cmCss  = CodeMirror(document.getElementById('cm-css-wrap'),  { ...opts, mode: 'css' });
+    cmHtml.setSize(null, 380);
+    cmCss.setSize(null, 380);
+  }
+
+  function setVnuMarkers(cm, errors) {
+    cm.clearGutter('cm-errors');
+    // clear any old line backgrounds
+    cm.eachLine(lh => cm.removeLineClass(lh, 'background', 'cm-error-line'));
+    errors.forEach(m => {
+      const lineNo = (m.line || 0) - 1; // CM is 0-indexed
+      if (lineNo < 0) return;
+      const marker = document.createElement('div');
+      marker.className = 'cm-error-marker';
+      marker.title = m.message;
+      cm.setGutterMarker(lineNo, 'cm-errors', marker);
+      cm.addLineClass(lineNo, 'background', 'cm-error-line');
+    });
+  }
+
+  function renderSource(source, validation) {
+    const panel = document.getElementById('source-panel');
+    if (!source || (!source.html && !source.css)) {
+      panel.style.display = 'none';
+      return;
+    }
+    panel.style.display = '';
+
+    initSourceEditors();
+
+    cmHtml.setValue(source.html || '');
+    cmCss.setValue(source.css || '');
+
+    if (validation) {
+      setVnuMarkers(cmHtml, [...(validation.html_errors || []), ...(validation.html_warnings || [])]);
+      setVnuMarkers(cmCss,  [...(validation.css_errors  || []), ...(validation.css_warnings  || [])]);
+    }
+
+    // Refresh layout after potential hidden→visible transition
+    setTimeout(() => {
+      if (document.getElementById('source-panel').open) {
+        cmHtml.refresh();
+        cmCss.refresh();
+      }
+    }, 50);
+  }
+
+  function switchSourceTab(tab) {
+    document.getElementById('cm-html-wrap').style.display = tab === 'html' ? '' : 'none';
+    document.getElementById('cm-css-wrap').style.display  = tab === 'css'  ? '' : 'none';
+    document.getElementById('src-tab-html').classList.toggle('active', tab === 'html');
+    document.getElementById('src-tab-css').classList.toggle('active', tab === 'css');
+    // Refresh the now-visible editor so it renders correctly
+    if (tab === 'html' && cmHtml) cmHtml.refresh();
+    if (tab === 'css'  && cmCss)  cmCss.refresh();
+  }
+
+  // Refresh CodeMirror when the details panel is opened
+  document.addEventListener('toggle', e => {
+    if (e.target && e.target.id === 'source-panel' && e.target.open) {
+      if (cmHtml) cmHtml.refresh();
+      if (cmCss)  cmCss.refresh();
+    }
+  }, true);
+
   function renderResults(url, data) {
-    const { result, pages_fetched, validation } = data;
+    const { result, pages_fetched, validation, source } = data;
     const criteria = result.criteria;
 
     // URL heading
@@ -972,21 +1254,26 @@ This area will be used by the assessor to leave comments related to this criteri
     // Table
     const tbody = document.getElementById('rubric-body');
     tbody.innerHTML = '';
-    criteria.forEach(c => {
+    // Update open-page button
+    const openBtn = document.getElementById('open-page-btn');
+    openBtn.href = url;
+    openBtn.style.display = '';
+
+    criteria.forEach((c, i) => {
       const tr = document.createElement('tr');
       tr.innerHTML = `
         <td>
           <div class="criterion-name">${escHtml(c.name)}</div>
-          <div class="criterion-feedback">${escHtml(c.feedback)}</div>
+          <textarea class="criterion-feedback" rows="2" tabindex="-1">${escHtml(c.feedback || '')}</textarea>
         </td>
         <td class="pts-cell">
           <div class="score-control">
-            <button class="score-btn" title="Decrease" onclick="adjustScore(this,-1)">&#9660;</button>
-            <input type="number" class="score-input" value="${c.earned_points}"
+            <button class="score-btn" tabindex="-1" title="Decrease" onclick="adjustScore(this,-1)">&#9660;</button>
+            <input type="number" class="score-input" tabindex="${i+1}" value="${c.earned_points}"
               min="0" max="${c.max_points}" data-max="${c.max_points}"
               oninput="updateTotals()">
             <span class="score-denom">/ ${c.max_points}</span>
-            <button class="score-btn" title="Increase" onclick="adjustScore(this,1)">&#9650;</button>
+            <button class="score-btn" tabindex="-1" title="Increase" onclick="adjustScore(this,1)">&#9650;</button>
           </div>
         </td>
       `;
@@ -1000,6 +1287,7 @@ This area will be used by the assessor to leave comments related to this criteri
     fb.innerHTML = `<strong>Overall feedback</strong>${escHtml(result.overall_feedback || '')}`;
 
     renderValidation(validation);
+    renderSource(source, validation);
     document.getElementById('results').style.display = 'block';
   }
 
@@ -1032,13 +1320,22 @@ This area will be used by the assessor to leave comments related to this criteri
   }
 
   // ---------- Session ----------
+  function syncCurrentResultFromUI() {
+    if (!currentResult) return;
+    const rows = document.querySelectorAll('#rubric-body tr');
+    currentResult.result.criteria.forEach((c, i) => {
+      const row = rows[i];
+      if (!row) return;
+      const input    = row.querySelector('.score-input');
+      const textarea = row.querySelector('.criterion-feedback');
+      if (input)    c.earned_points = parseInt(input.value) || 0;
+      if (textarea) c.feedback      = textarea.value;
+    });
+  }
+
   function showStudentPicker() {
     if (!currentResult) return;
-    // Sync overridden scores into currentResult before saving
-    const inputs = document.querySelectorAll('#rubric-body .score-input');
-    currentResult.result.criteria.forEach((c, i) => {
-      if (inputs[i]) c.earned_points = parseInt(inputs[i].value) || 0;
-    });
+    syncCurrentResultFromUI();
     if (canvasRoster.length === 0) {
       // No roster loaded — save immediately without student mapping
       commitSave(null);
@@ -1140,10 +1437,47 @@ This area will be used by the assessor to leave comments related to this criteri
     a.click();
   }
 
+  function canvasAssessmentToResult(rubricAssessment) {
+    // Build inverse map: canvas criterion id -> our criterion name
+    const inverseMap = {};
+    Object.entries(criterionMap).forEach(([name, id]) => { inverseMap[id] = name; });
+
+    const criteria = canvasCriteria.map(cc => {
+      const a    = rubricAssessment[cc.id] || {};
+      const name = inverseMap[cc.id] || cc.description;
+      return {
+        name,
+        max_points:    cc.points,
+        earned_points: a.points   ?? 0,
+        feedback:      a.comments ?? '',
+      };
+    });
+    return { criteria, overall_feedback: '' };
+  }
+
+  function loadCanvasExistingGrade() {
+    if (batchIndex < 0) return;
+    const entry = batchQueue[batchIndex];
+    const sub   = getCanvasSubmission(entry);
+    if (!sub?.rubric_assessment || !canvasCriteria.length) {
+      return alert('No rubric assessment data available from Canvas for this student.');
+    }
+    const result = canvasAssessmentToResult(sub.rubric_assessment);
+    currentResult = { student_url: entry.url, result };
+    // Render as if Claude graded it — no API call
+    renderResults(entry.url, { result, validation: null, pages_fetched: [], criteria_parsed: null });
+    document.getElementById('approve-btn').style.display = '';
+    document.getElementById('save-btn').style.display = 'none';
+    // Store in batch queue
+    batchQueue[batchIndex].result = result;
+    renderStudentRail();
+  }
+
   // ---------- Canvas API ----------
-  let canvasConfig = null;    // {token, course_id, assignment_id}
-  let canvasCriteria = [];    // [{id, description, points}] from Canvas
-  let criterionMap = {};      // {our_criterion_name: canvas_criterion_id}
+  let canvasConfig = null;      // {token, course_id, assignment_id}
+  let canvasCriteria = [];      // [{id, description, points}] from Canvas
+  let criterionMap = {};        // {our_criterion_name: canvas_criterion_id}
+  let canvasSubmissions = {};   // {canvas_user_id: {graded, score, rubric_assessed}}
 
   function toggleCanvasAPI() {
     const toggle = document.getElementById('canvas-api-toggle');
@@ -1223,8 +1557,9 @@ This area will be used by the assessor to leave comments related to this criteri
       return;
     }
 
-    canvasConfig   = { token, course_id, assignment_id };
-    canvasCriteria = data.criteria;
+    canvasConfig      = { token, course_id, assignment_id };
+    canvasCriteria    = data.criteria;
+    canvasSubmissions = data.submissions || {};
 
     // Build criterion map using parsed rubric (if setup is already saved, use its rubric)
     const rubricText = document.getElementById('rubric').value;
@@ -1239,7 +1574,14 @@ This area will be used by the assessor to leave comments related to this criteri
     criterionMap = {};
     canvasCriteria.forEach(cc => { criterionMap[cc.description] = cc.id; });
 
-    statusEl.innerHTML = `<span style="color:var(--green);font-weight:600">✓ Connected — "${escHtml(data.assignment_name)}" · ${canvasCriteria.length} rubric criteria found</span>`;
+    const alreadyGraded = Object.values(canvasSubmissions).filter(s => s.graded).length;
+    const gradedNote = alreadyGraded > 0
+      ? ` · <span style="color:var(--yellow)">⚠ ${alreadyGraded} already graded in Canvas</span>`
+      : ` · <span style="color:var(--green)">0 graded yet</span>`;
+    statusEl.innerHTML = `<span style="color:var(--green);font-weight:600">✓ Connected — "${escHtml(data.assignment_name)}" · ${canvasCriteria.length} criteria${gradedNote}</span>`;
+
+    // Re-render rail now that we have submission states
+    if (batchQueue.length) renderStudentRail();
 
     // Show match preview table
     const preview = document.getElementById('canvas-match-preview');
@@ -1330,6 +1672,216 @@ This area will be used by the assessor to leave comments related to this criteri
     });
   }
 
+  // ---------- Batch mode ----------
+  let batchQueue = [];   // [{canvas_id, url, is_late, student, result, approved}]
+  let batchIndex = -1;
+
+  async function handleSubmissionsFiles(input) {
+    const files = Array.from(input.files);
+    if (!files.length) return;
+
+    const statusEl = document.getElementById('submissions-status');
+    statusEl.textContent = `Parsing ${files.length} files…`;
+    statusEl.className = 'canvas-status';
+
+    const entries = [];
+    for (const file of files) {
+      const text = await file.text();
+      const basename = file.name;
+
+      // Parse canvas_id and late flag from filename
+      // Format: lastnamefirstname_CANVASID[_late]_link.html
+      const parts = basename.replace(/\.html$/i, '').split('_');
+      let canvas_id = null;
+      let is_late = false;
+      for (let i = 0; i < parts.length; i++) {
+        if (/^\d{5,}$/.test(parts[i])) {
+          canvas_id = parts[i];
+          is_late = parts.slice(i + 1).some(p => p.toLowerCase() === 'late');
+          break;
+        }
+      }
+      if (!canvas_id) continue;
+
+      // Extract URL — prefer <a href>, fallback to meta refresh
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(text, 'text/html');
+      let url = null;
+      const a = doc.querySelector('a[href]');
+      if (a) url = a.getAttribute('href').replace(/#$/, '').trim();
+      if (!url) {
+        const meta = doc.querySelector('meta[http-equiv="Refresh"]');
+        if (meta) {
+          const m = (meta.getAttribute('content') || '').match(/url=(.+)/i);
+          if (m) url = m[1].replace(/#$/, '').trim();
+        }
+      }
+      if (!url) continue;
+
+      // Match to Canvas roster by canvas_id
+      const student = canvasRoster.find(s => s.id === canvas_id) || null;
+
+      entries.push({ canvas_id, url, is_late, student, result: null, approved: false });
+    }
+
+    if (!entries.length) {
+      statusEl.textContent = 'No valid submissions found.';
+      statusEl.className = 'canvas-status err';
+      return;
+    }
+
+    // Sort by student name (roster order) or filename
+    entries.sort((a, b) => {
+      const na = a.student?.name || a.canvas_id;
+      const nb = b.student?.name || b.canvas_id;
+      return na.localeCompare(nb);
+    });
+
+    batchQueue = entries;
+    batchIndex = -1;
+
+    const matched = entries.filter(e => e.student).length;
+    statusEl.textContent = `✓ ${entries.length} submissions · ${matched} matched to roster`;
+    statusEl.className = 'canvas-status ok';
+
+    renderStudentRail();
+    document.getElementById('student-rail-card').style.display = 'block';
+    document.getElementById('grade-section').style.display = 'block';
+  }
+
+  function getCanvasSubmission(entry) {
+    return entry.canvas_id ? (canvasSubmissions[entry.canvas_id] || null) : null;
+  }
+
+  function renderStudentRail() {
+    const scroll = document.getElementById('rail-scroll');
+    scroll.innerHTML = '';
+
+    batchQueue.forEach((entry, i) => {
+      const name = entry.student
+        ? entry.student.name.split(',')[0].trim()
+        : `ID:${entry.canvas_id}`;
+
+      const sub = getCanvasSubmission(entry);
+      const canvasGraded = sub?.graded && !entry.approved;
+
+      const pill = document.createElement('button');
+      pill.className = 'student-pill' +
+        (i === batchIndex   ? ' active'        : '') +
+        (entry.approved     ? ' approved'       : '') +
+        (!entry.approved && entry.result ? ' graded' : '') +
+        (!entry.approved && !entry.result && canvasGraded ? ' canvas-graded' : '');
+      pill.dataset.index = i;
+
+      let prefix = '';
+      if (entry.approved)  prefix = '✓ ';
+      else if (entry.result) prefix = '● ';
+      else if (canvasGraded) prefix = '◆ ';
+
+      pill.innerHTML =
+        escHtml(prefix + name) +
+        (entry.is_late ? ' <span class="pill-late">🕐</span>' : '') +
+        (canvasGraded  ? ` <span class="pill-late" title="Score: ${sub.score ?? '?'}">(${sub.score ?? '?'})</span>` : '');
+      pill.onclick = () => loadBatchStudent(i);
+      scroll.appendChild(pill);
+    });
+
+    const approved     = batchQueue.filter(e => e.approved).length;
+    const canvasGraded = batchQueue.filter(e => !e.approved && getCanvasSubmission(e)?.graded).length;
+    let progress = `${approved} / ${batchQueue.length} approved`;
+    if (canvasGraded) progress += ` · ${canvasGraded} already in Canvas`;
+    document.getElementById('rail-progress').textContent = progress;
+  }
+
+  function loadBatchStudent(index) {
+    batchIndex = index;
+    const entry = batchQueue[index];
+
+    // Pre-fill URL
+    document.getElementById('student-url').value = entry.url;
+
+    // Show batch header
+    const header = document.getElementById('batch-student-header');
+    header.style.display = 'flex';
+    document.getElementById('batch-name').textContent =
+      entry.student ? entry.student.name : `Canvas ID: ${entry.canvas_id}`;
+    const sub = getCanvasSubmission(entry);
+    const metaParts = [`${index + 1} of ${batchQueue.length}`];
+    if (entry.is_late) metaParts.push('⏰ Late submission');
+    if (entry.approved) metaParts.push('✓ Approved');
+    const metaEl = document.getElementById('batch-meta');
+    metaEl.textContent = metaParts.join(' · ');
+
+    if (sub?.graded && !entry.approved) {
+      metaEl.insertAdjacentHTML('beforeend',
+        ` · <span style="color:#7c3aed;font-weight:600">◆ Already graded in Canvas — score: ${sub.score ?? '?'}${sub.rubric_assessed ? ', rubric filled' : ''}</span>`);
+    }
+
+    // Show/hide "Load from Canvas" button
+    const loadCanvasBtn = document.getElementById('load-canvas-btn');
+    if (sub?.rubric_assessed && !entry.approved) {
+      loadCanvasBtn.style.display = '';
+    } else {
+      loadCanvasBtn.style.display = 'none';
+    }
+
+    // Toggle buttons: batch mode uses Approve, not picker
+    document.getElementById('save-btn').style.display = 'none';
+    document.getElementById('approve-btn').style.display = 'none'; // shown after grading
+
+    // If already graded, show previous result
+    if (entry.result) {
+      renderResults(entry.url, { result: entry.result, validation: entry.validation, source: entry.source, pages_fetched: entry.pages_fetched, criteria_parsed: entry.criteria_parsed });
+      document.getElementById('approve-btn').style.display = entry.approved ? 'none' : '';
+      document.getElementById('save-btn').style.display = 'none';
+    } else {
+      hideResults();
+    }
+
+    hideError();
+    renderStudentRail();
+
+    // Scroll pill into view
+    const pill = document.querySelector(`.student-pill[data-index="${index}"]`);
+    if (pill) pill.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+  }
+
+  function navBatch(delta) {
+    const next = batchIndex + delta;
+    if (next >= 0 && next < batchQueue.length) loadBatchStudent(next);
+  }
+
+  function gradeNextUnreviewed() {
+    const next = batchQueue.findIndex((e, i) => i >= Math.max(0, batchIndex) && !e.approved && !e.result);
+    const fallback = batchQueue.findIndex(e => !e.approved && !e.result);
+    const idx = next >= 0 ? next : fallback;
+    if (idx < 0) return alert('All students have been graded!');
+    loadBatchStudent(idx);
+    // Auto-trigger grading after a tick
+    setTimeout(() => gradeStudent(), 50);
+  }
+
+  function approveAndNext() {
+    if (batchIndex < 0 || !currentResult) return;
+    const entry = batchQueue[batchIndex];
+    syncCurrentResultFromUI();
+
+    // Store result back in queue entry
+    entry.result      = currentResult.result;
+    entry.approved    = true;
+
+    // Commit to session (student already known)
+    commitSave(entry.student);
+
+    document.getElementById('approve-btn').style.display = 'none';
+    renderStudentRail();
+
+    // Advance to next unapproved
+    const next = batchQueue.findIndex((e, i) => i > batchIndex && !e.approved);
+    if (next >= 0) loadBatchStudent(next);
+    else document.getElementById('batch-meta').textContent += ' · All done!';
+  }
+
   // ---------- Save / Load session ----------
   function saveSession() {
     if (!sessionGrades.length && !setupData) return alert('Nothing to save yet.');
@@ -1343,6 +1895,8 @@ This area will be used by the assessor to leave comments related to this criteri
       assignmentPoints,
       canvasCriteria,
       criterionMap,
+      batchQueue,
+      batchIndex,
       // canvasConfig token intentionally excluded — re-enter on resume
       canvasConfigPartial: canvasConfig
         ? { course_id: canvasConfig.course_id, assignment_id: canvasConfig.assignment_id }
@@ -1373,6 +1927,8 @@ This area will be used by the assessor to leave comments related to this criteri
     assignmentPoints  = snapshot.assignmentPoints || null;
     canvasCriteria    = snapshot.canvasCriteria || [];
     criterionMap      = snapshot.criterionMap || {};
+    batchQueue        = snapshot.batchQueue || [];
+    batchIndex        = snapshot.batchIndex ?? -1;
 
     if (setupData) {
       // Re-populate form fields
@@ -1424,6 +1980,14 @@ This area will be used by the assessor to leave comments related to this criteri
       refineCriterionMap(Object.keys(criterionMap).map(name => ({ name })));
     }
 
+    // Restore batch queue
+    if (batchQueue.length) {
+      renderStudentRail();
+      document.getElementById('student-rail-card').style.display = 'block';
+      document.getElementById('grade-section').style.display = 'block';
+      if (batchIndex >= 0) loadBatchStudent(batchIndex);
+    }
+
     // Render session table
     if (sessionGrades.length) {
       refreshSessionTable();
@@ -1439,7 +2003,10 @@ This area will be used by the assessor to leave comments related to this criteri
     document.getElementById('loading').style.display = on ? 'flex' : 'none';
     document.getElementById('grade-btn').disabled = on;
   }
-  function hideResults() { document.getElementById('results').style.display = 'none'; }
+  function hideResults() {
+    document.getElementById('results').style.display = 'none';
+    document.getElementById('source-panel').style.display = 'none';
+  }
   function showError(msg) {
     const el = document.getElementById('error-box');
     el.textContent = msg;
@@ -1459,10 +2026,15 @@ This area will be used by the assessor to leave comments related to this criteri
     });
   });
 
-  // Grade on Enter in URL field
+  // Grade on Enter; update open-page button on URL change
   document.addEventListener('DOMContentLoaded', () => {
-    document.getElementById('student-url').addEventListener('keydown', e => {
-      if (e.key === 'Enter') gradeStudent();
+    const urlInput = document.getElementById('student-url');
+    urlInput.addEventListener('keydown', e => { if (e.key === 'Enter') gradeStudent(); });
+    urlInput.addEventListener('input', () => {
+      const btn = document.getElementById('open-page-btn');
+      const v = urlInput.value.trim();
+      btn.href = v || '#';
+      btn.style.display = v ? '' : 'none';
     });
   });
 </script>
