@@ -295,14 +295,27 @@ def grade():
     student_url = (data.get("url") or "").strip()
     description = (data.get("assignment_description") or "").strip()
     rubric_text = (data.get("rubric") or "").strip()
+    criteria_direct = data.get("criteria")  # pre-parsed array from Canvas, if provided
     crawl = bool(data.get("crawl", False))
+    include_ai = bool(data.get("include_ai", True))
 
-    if not all([api_key, student_url, description, rubric_text]):
-        return jsonify({"error": "All fields are required."}), 400
+    if not student_url:
+        return jsonify({"error": "Student URL is required."}), 400
 
-    criteria = parse_rubric(rubric_text)
-    if not criteria:
-        return jsonify({"error": "Could not parse any criteria from the rubric. Check the format."}), 400
+    if include_ai:
+        if not api_key:
+            return jsonify({"error": "Anthropic API key is required when Include AI feedback is enabled."}), 400
+        if not description:
+            return jsonify({"error": "Assignment description is required when Include AI feedback is enabled."}), 400
+
+    if criteria_direct:
+        criteria = [{"name": c["name"], "max_points": c["max_points"]} for c in criteria_direct]
+    else:
+        if not rubric_text:
+            return jsonify({"error": "Either a rubric text or pre-parsed criteria are required."}), 400
+        criteria = parse_rubric(rubric_text)
+        if not criteria:
+            return jsonify({"error": "Could not parse any criteria from the rubric. Check the format."}), 400
 
     try:
         pages = fetch_site_content(student_url, crawl=crawl)
@@ -312,17 +325,27 @@ def grade():
     if not pages:
         return jsonify({"error": "No pages could be fetched from that URL."}), 400
 
-    # Run W3C validation (best-effort — grading continues even if it fails)
+    # Always run W3C validation
     validation = validate_with_vnu(pages)
 
-    try:
-        result = grade_with_claude(description, criteria, pages, api_key, validation)
-    except anthropic.AuthenticationError:
-        return jsonify({"error": "Invalid Anthropic API key."}), 401
-    except json.JSONDecodeError as e:
-        return jsonify({"error": f"Claude returned malformed JSON: {e}"}), 500
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+    if include_ai:
+        try:
+            result = grade_with_claude(description, criteria, pages, api_key, validation)
+        except anthropic.AuthenticationError:
+            return jsonify({"error": "Invalid Anthropic API key."}), 401
+        except json.JSONDecodeError as e:
+            return jsonify({"error": f"Claude returned malformed JSON: {e}"}), 500
+        except Exception as e:
+            return jsonify({"error": str(e)}), 500
+    else:
+        # Manual grading: return empty rubric for the instructor to fill in
+        result = {
+            "criteria": [
+                {"name": c["name"], "max_points": c["max_points"], "earned_points": 0, "feedback": ""}
+                for c in criteria
+            ],
+            "overall_feedback": "",
+        }
 
     first_page = next(iter(pages.values()), {})
     source = {"html": first_page.get("html", ""), "css": first_page.get("css", "")}
@@ -390,9 +413,9 @@ def _canvas_get(url: str, token: str, params: dict = None) -> requests.Response:
 
 
 def _fetch_all_submissions(base: str, course_id: str, assignment_id: str, token: str) -> list:
-    """Fetch all submissions with rubric assessments, handling pagination."""
+    """Fetch all submissions with rubric assessments and user info, handling pagination."""
     url = f"{base}/api/v1/courses/{course_id}/assignments/{assignment_id}/submissions"
-    params = {"include[]": "rubric_assessment", "per_page": 100}
+    params = {"include[]": ["rubric_assessment", "user"], "per_page": 100}
     results = []
     while url:
         resp = _canvas_get(url, token, params)
@@ -407,6 +430,52 @@ def _fetch_all_submissions(base: str, course_id: str, assignment_id: str, token:
                 params = None  # already encoded in next URL
                 break
     return results
+
+
+@app.route("/api/canvas/assignments", methods=["POST"])
+def canvas_fetch_assignments():
+    data      = request.get_json(force=True)
+    token     = (data.get("token") or "").strip()
+    course_id = (data.get("course_id") or "").strip()
+
+    if not all([token, course_id]):
+        return jsonify({"error": "Token and Course ID are required."}), 400
+
+    base = f"https://{CANVAS_INSTANCE}"
+    url  = f"{base}/api/v1/courses/{course_id}/assignments"
+    params = {"per_page": 50, "order_by": "due_at"}
+    assignments = []
+
+    while url:
+        resp = _canvas_get(url, token, params)
+        if resp.status_code == 401:
+            return jsonify({"error": "Invalid Canvas API token."}), 401
+        if resp.status_code == 403:
+            return jsonify({"error": "Permission denied for this course."}), 403
+        if resp.status_code == 404:
+            return jsonify({"error": "Course not found — check the Course ID."}), 404
+        resp.raise_for_status()
+        assignments.extend(resp.json())
+        url = None
+        for part in resp.headers.get("Link", "").split(","):
+            if 'rel="next"' in part:
+                url = part.split(";")[0].strip().strip("<>")
+                params = None
+                break
+
+    return jsonify({
+        "assignments": [
+            {
+                "id": str(a["id"]),
+                "name": a.get("name", ""),
+                "points_possible": a.get("points_possible"),
+                "submission_types": a.get("submission_types", []),
+                "has_rubric": bool(a.get("rubric")),
+                "due_at": a.get("due_at"),
+            }
+            for a in assignments
+        ]
+    })
 
 
 @app.route("/api/canvas/fetch-rubric", methods=["POST"])
@@ -462,16 +531,24 @@ def canvas_fetch_rubric():
         if not uid:
             continue
         ra = s.get("rubric_assessment") or {}
+        user = s.get("user") or {}
         submissions[uid] = {
             "workflow_state": s.get("workflow_state", ""),
             "score": s.get("score"),
             "graded": s.get("workflow_state") == "graded",
             "rubric_assessed": bool(ra),
-            "rubric_assessment": ra,   # full {criterion_id: {points, comments}}
+            "rubric_assessment": ra,
+            "user_name": user.get("sortable_name") or user.get("name") or "",
+            "submitted_url": (s.get("url") or "").strip(),
+            "is_late": s.get("late", False),
         }
+
+    desc_html = assignment.get("description") or ""
+    desc_text = BeautifulSoup(desc_html, "html.parser").get_text(separator="\n").strip() if desc_html else ""
 
     return jsonify({
         "criteria": criteria,
+        "description": desc_text,
         "assignment_name": assignment.get("name", ""),
         "submissions": submissions,
     })

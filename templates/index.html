@@ -58,7 +58,7 @@
     }
 
     /* ---- Layout ---- */
-    .container {
+    .setup-wrapper {
       max-width: 960px;
       margin: 0 auto;
       padding: 2rem 1.5rem;
@@ -186,7 +186,6 @@
     #assignment-badge .badge-meta { color: var(--gray-500); margin-top: .25rem; }
 
     /* ---- Grading section ---- */
-    #grade-section { display: none; }
     .url-row { display: flex; gap: .75rem; align-items: flex-end; }
     .url-row > div:first-child { flex: 1; }
 
@@ -402,29 +401,6 @@
     .picker-row { display: flex; gap: .75rem; align-items: center; flex-wrap: wrap; }
     .picker-row select { flex: 1; min-width: 220px; }
 
-    /* ---- Canvas API section ---- */
-    .canvas-api-toggle {
-      display: flex;
-      align-items: center;
-      gap: .5rem;
-      font-size: .875rem;
-      font-weight: 600;
-      color: var(--blue);
-      cursor: pointer;
-      user-select: none;
-      padding: .5rem 0;
-    }
-    .canvas-api-toggle .arrow { font-size: .65rem; transition: transform .15s; }
-    .canvas-api-toggle.open .arrow { transform: rotate(90deg); }
-    .canvas-api-body { display: none; margin-top: .75rem; }
-
-    .match-table { width: 100%; border-collapse: collapse; font-size: .8rem; margin-top: .75rem; }
-    .match-table th {
-      background: var(--gray-100); padding: .4rem .75rem;
-      text-align: left; font-weight: 700; color: var(--gray-700);
-      border-bottom: 1px solid var(--gray-200);
-    }
-    .match-table td { padding: .4rem .75rem; border-bottom: 1px solid var(--gray-100); vertical-align: top; }
     .match-ok   { color: var(--green); font-weight: 700; }
     .match-warn { color: var(--yellow); font-weight: 700; }
 
@@ -469,7 +445,6 @@
     .canvas-status.err { background: var(--red-light);    color: var(--red); }
 
     /* ---- Student rail ---- */
-    #student-rail-card { display: none; }
     .rail-header {
       display: flex;
       align-items: center;
@@ -571,6 +546,164 @@
     .session-table tr:last-child td { border-bottom: none; }
     .session-score { font-weight: 700; }
 
+  /* ---- Assignment chip in app-header ---- */
+  .assignment-chip {
+    display: flex; align-items: center; gap: .5rem;
+    margin-left: .75rem;
+    background: rgba(255,255,255,.15);
+    padding: .2rem .625rem;
+    border-radius: 6px;
+    font-size: .875rem; color: white;
+    max-width: 300px;
+  }
+  .assignment-chip span {
+    font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .assignment-chip button {
+    background: rgba(255,255,255,.2); color: white;
+    border: 1px solid rgba(255,255,255,.35);
+    border-radius: 5px; padding: .15rem .5rem;
+    font-size: .75rem; font-weight: 600; cursor: pointer; white-space: nowrap;
+  }
+  .assignment-chip button:hover { background: rgba(255,255,255,.3); }
+
+  /* ---- Ribbon ---- */
+  .ribbon {
+    display: flex; align-items: center; gap: .625rem;
+    padding: .4rem 1.25rem; min-height: 52px;
+    background: white; border-bottom: 1px solid var(--gray-200);
+    box-shadow: var(--shadow); overflow: hidden;
+    flex-shrink: 0;
+  }
+  .ribbon-rail {
+    display: flex; align-items: center; gap: .4rem;
+    flex: 1; min-width: 0; overflow: hidden;
+  }
+  .ribbon .rail-scroll {
+    display: flex; gap: .3rem; overflow-x: auto; flex: 1; min-width: 0;
+    scrollbar-width: none; padding: .1rem 0;
+  }
+  .ribbon .rail-scroll::-webkit-scrollbar { display: none; }
+  .ribbon .student-pill { flex-shrink: 0; }
+  .ribbon #rail-progress { font-size: .72rem; color: var(--gray-500); white-space: nowrap; flex-shrink: 0; }
+  .ribbon-student {
+    flex-shrink: 0; min-width: 0; max-width: 170px;
+    display: flex; flex-direction: column; justify-content: center;
+    padding: 0 .625rem;
+    border-left: 1px solid var(--gray-200);
+    border-right: 1px solid var(--gray-200);
+  }
+  .ribbon-student .batch-name {
+    font-weight: 700; font-size: .82rem; color: var(--gray-900);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .ribbon-student #batch-meta {
+    font-size: .7rem; color: var(--gray-500);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .ribbon-url { display: flex; align-items: center; gap: .35rem; flex-shrink: 0; }
+  .ribbon-url #student-url {
+    width: 290px; padding: .35rem .6rem;
+    border: 1px solid var(--gray-300); border-radius: 6px;
+    font-size: .85rem; font-family: inherit; color: var(--gray-900);
+  }
+  .ribbon-url #student-url:focus {
+    outline: none; border-color: var(--blue);
+    box-shadow: 0 0 0 3px rgba(37,99,235,.15);
+  }
+  .ribbon-sep { width: 1px; height: 22px; background: var(--gray-200); flex-shrink: 0; margin: 0 .125rem; }
+
+  /* ---- Setup wrapper ---- */
+  .setup-wrapper {
+    max-width: 960px; margin: 0 auto;
+    padding: 2rem 1.5rem;
+    display: flex; flex-direction: column; gap: 1.5rem;
+  }
+
+  /* ---- Main split ---- */
+  .main-split {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr;
+    height: calc(100vh - 56px - 52px);
+    overflow: hidden;
+    border-top: 1px solid var(--gray-200);
+  }
+  .panel-rubric {
+    overflow-y: auto;
+    padding: 1.25rem 1.5rem;
+    border-right: 1px solid var(--gray-200);
+    min-width: 0;
+  }
+  .panel-source {
+    display: flex; flex-direction: column;
+    overflow: hidden; min-width: 0;
+    border-left: 1px solid var(--gray-200);
+    background: white;
+  }
+  .panel-source-label {
+    padding: .3rem .75rem;
+    background: var(--gray-100); border-bottom: 1px solid var(--gray-200);
+    font-size: .7rem; font-weight: 700; color: var(--gray-500);
+    text-transform: uppercase; letter-spacing: .06em;
+    flex-shrink: 0;
+  }
+  .cm-panel-wrap { flex: 1; overflow: hidden; min-height: 0; }
+  .cm-panel-wrap .CodeMirror { height: 100%; min-height: 300px; }
+
+  /* ---- Session wrapper ---- */
+  .session-wrapper { padding: 1.5rem; background: var(--gray-50); border-top: 1px solid var(--gray-200); }
+
+  /* ---- Canvas integration section ---- */
+  .canvas-section {
+    border: 1px solid #bfdbfe;
+    border-radius: 8px;
+    padding: 1rem 1.25rem;
+    background: var(--blue-light);
+  }
+  .canvas-section-label {
+    font-size: .7rem;
+    font-weight: 700;
+    color: var(--blue);
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    margin-bottom: .75rem;
+  }
+  .canvas-load-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr auto;
+    gap: .75rem;
+    align-items: flex-end;
+  }
+  @media (max-width: 600px) { .canvas-load-row { grid-template-columns: 1fr; } }
+  #canvas-assignment-row { margin-top: .75rem; }
+  #canvas-assignment-dropdown { max-width: 100%; }
+
+  /* ---- Criteria preview table (rubric from Canvas) ---- */
+  .criteria-preview-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: .875rem;
+    border: 1px solid var(--gray-200);
+    border-radius: 6px;
+    overflow: hidden;
+  }
+  .criteria-preview-table th {
+    background: var(--gray-100);
+    padding: .4rem .875rem;
+    font-weight: 700;
+    color: var(--gray-700);
+    text-align: left;
+    border-bottom: 2px solid var(--gray-200);
+  }
+  .criteria-preview-table th:last-child { text-align: right; }
+  .criteria-preview-table td {
+    padding: .5rem .875rem;
+    border-bottom: 1px solid var(--gray-100);
+    vertical-align: top;
+  }
+  .criteria-preview-table tr:last-child td { border-bottom: none; }
+  .criteria-preview-table td:last-child { text-align: right; font-weight: 600; color: var(--gray-700); white-space: nowrap; }
+
   /* ---- Source viewer ---- */
   .source-panel {
     border: 1px solid var(--gray-200);
@@ -634,12 +767,16 @@
 <header class="app-header">
   <div>
     <h1>CS 140 Assignment Grader</h1>
-    <span>HTML &amp; CSS — Powered by Claude AI</span>
+    <span style="font-size:.875rem;opacity:.8">HTML &amp; CSS — Powered by Claude AI</span>
+  </div>
+  <div class="assignment-chip" id="assignment-chip" style="display:none">
+    <span id="header-assignment-name"></span>
+    <button onclick="editSetup()">&#9998; Edit Setup</button>
   </div>
   <div class="header-badge" id="session-count">0 graded this session</div>
 </header>
 
-<div class="container">
+<div class="setup-wrapper" id="setup-wrapper">
 
   <!-- Resume banner -->
   <div class="resume-banner" id="resume-banner">
@@ -670,67 +807,61 @@
           </div>
         </div>
 
+        <!-- Canvas integration -->
+        <div class="canvas-section">
+          <div class="canvas-section-label">Canvas</div>
+          <div class="canvas-load-row">
+            <div>
+              <label>API Token <span class="hint">(Account Settings → New Access Token)</span></label>
+              <input type="password" id="canvas-token" placeholder="token...">
+            </div>
+            <div>
+              <label>Course ID <span class="hint">(/courses/<b>XXXXXX</b>/)</span></label>
+              <input type="text" id="canvas-course-id" placeholder="e.g. 12345">
+            </div>
+            <div>
+              <button class="btn btn-outline" id="load-assignments-btn" onclick="loadAssignments()">Load Assignments &rarr;</button>
+            </div>
+          </div>
+          <div id="canvas-load-status" style="margin-top:.5rem; font-size:.875rem"></div>
+          <div id="canvas-assignment-row" style="display:none">
+            <label>Assignment</label>
+            <select id="canvas-assignment-dropdown" onchange="selectAssignment(this.value)">
+              <option value="">-- Select an assignment --</option>
+            </select>
+          </div>
+        </div>
+
         <div>
-          <label>Assignment Description <span class="hint">(paste from Canvas or write your own)</span></label>
+          <label>Assignment Description <span class="hint">(auto-filled from Canvas, or type manually)</span></label>
           <textarea id="assignment-description" rows="4"
             placeholder="Describe what students were asked to build. E.g. 'Build a single-page layout using Flexbox and CSS Grid, including a header, nav, sidebar, main content with profile cards, and a footer.'"></textarea>
         </div>
 
-        <div>
+        <!-- Rubric — Canvas criteria view (shown after assignment selected) -->
+        <div id="rubric-canvas-view" style="display:none">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:.5rem">
+            <label style="margin:0">Rubric <span class="hint">— loaded from Canvas</span></label>
+            <button class="btn btn-outline btn-sm" onclick="switchToRubricText()">Edit as text &darr;</button>
+          </div>
+          <table class="criteria-preview-table">
+            <thead><tr><th>Criterion</th><th>Max pts</th></tr></thead>
+            <tbody id="rubric-preview-tbody"></tbody>
+          </table>
+        </div>
+
+        <!-- Rubric — manual text view -->
+        <div id="rubric-manual-view">
           <label>Rubric <span class="hint">(paste directly from Canvas — the tool will parse it)</span></label>
           <textarea id="rubric" rows="10" class="input-mono"
             placeholder="Paste your Canvas rubric here. Example:&#10;&#10;This criterion is linked to a Learning Outcome&#10;HTML page has a HEADER with a title&#10;This area will be used by the assessor to leave comments...&#10;5 pts&#10;&#10;..."></textarea>
         </div>
 
-        <div class="form-row">
-          <div>
-            <label>Canvas Gradebook CSV <span class="hint">(optional — enables Canvas export)</span></label>
-            <div class="canvas-upload-row">
-              <input type="file" id="canvas-csv-file" accept=".csv" onchange="handleCanvasFile(this)">
-              <span id="canvas-csv-status" class="canvas-status"></span>
-            </div>
-          </div>
-          <div>
-            <label>Submissions Folder <span class="hint">(select all .html files — pre-fills student URLs)</span></label>
-            <div class="canvas-upload-row">
-              <input type="file" id="submissions-files" accept=".html" multiple onchange="handleSubmissionsFiles(this)">
-              <span id="submissions-status" class="canvas-status"></span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Canvas API (optional) -->
         <div>
-          <div class="canvas-api-toggle" id="canvas-api-toggle" onclick="toggleCanvasAPI()">
-            <span class="arrow">&#9658;</span> Canvas API — push rubric grades directly to SpeedGrader <span class="hint">(optional)</span>
-          </div>
-          <div class="canvas-api-body" id="canvas-api-body">
-            <div class="form-row">
-              <div>
-                <label>Canvas API Token <span class="hint">(Account Settings → New Access Token)</span></label>
-                <input type="password" id="canvas-token" placeholder="token...">
-              </div>
-              <div>
-                <label>Course ID <span class="hint">(from Canvas URL: /courses/<b>XXXXXX</b>/)</span></label>
-                <input type="text" id="canvas-course-id" placeholder="e.g. 12345">
-              </div>
-            </div>
-            <div class="form-row">
-              <div>
-                <label>Assignment ID <span class="hint">(from Canvas URL: /assignments/<b>XXXXXX</b>)</span></label>
-                <input type="text" id="canvas-assignment-id" placeholder="e.g. 67890">
-              </div>
-              <div style="display:flex; align-items:flex-end">
-                <button class="btn btn-outline" onclick="connectToCanvas()" id="canvas-connect-btn" style="width:100%">Connect to Canvas &rarr;</button>
-              </div>
-            </div>
-            <div id="canvas-connect-status" style="margin-top:.5rem"></div>
-            <div id="canvas-match-preview" style="display:none">
-              <table class="match-table">
-                <thead><tr><th>Our Criterion</th><th>Canvas Criterion</th><th>Pts</th><th></th></tr></thead>
-                <tbody id="canvas-match-body"></tbody>
-              </table>
-            </div>
+          <label>Canvas Gradebook CSV <span class="hint">(optional — enables score CSV export)</span></label>
+          <div class="canvas-upload-row">
+            <input type="file" id="canvas-csv-file" accept=".csv" onchange="handleCanvasFile(this)">
+            <span id="canvas-csv-status" class="canvas-status"></span>
           </div>
         </div>
 
@@ -749,157 +880,130 @@
       </div>
     </div>
 
-    <!-- Assignment badge shown after saving -->
-    <div id="assignment-badge" style="margin: 0 1.5rem 1.5rem;">
-      <div class="badge-name" id="badge-name"></div>
-      <div class="badge-meta" id="badge-meta"></div>
-    </div>
-  </div>
+  </div><!-- /setup-card -->
+</div><!-- /setup-wrapper -->
 
-  <!-- ===== Student Rail (batch mode) ===== -->
-  <div class="card" id="student-rail-card">
-    <div class="rail-header">
-      <h2><span class="step-num">2</span> Students <span class="rail-progress" id="rail-progress"></span></h2>
-      <button class="btn btn-primary btn-sm" onclick="gradeNextUnreviewed()" id="grade-next-btn">&#9654; Grade Next Unreviewed</button>
-    </div>
+<!-- ===== RIBBON (shown after setup) ===== -->
+<div class="ribbon" id="ribbon" style="display:none">
+  <div class="ribbon-rail">
+    <button class="btn btn-outline btn-sm" onclick="navBatch(-1)" title="Previous student">&#8592;</button>
     <div class="rail-scroll" id="rail-scroll"></div>
+    <span id="rail-progress"></span>
+    <button class="btn btn-primary btn-sm" onclick="gradeNextUnreviewed()" id="grade-next-btn">&#9654; Next</button>
+  </div>
+  <div class="ribbon-student" id="batch-student-header">
+    <div class="batch-name" id="batch-name"></div>
+    <div id="batch-meta"></div>
+  </div>
+  <div class="ribbon-url">
+    <input type="url" id="student-url" placeholder="https://student.github.io/project/">
+    <a id="open-page-btn" href="#" target="_blank" class="btn btn-outline btn-sm" title="Open in new tab" style="display:none">&#8599;</a>
+    <button id="load-canvas-btn" class="btn btn-outline btn-sm" onclick="loadCanvasExistingGrade()" style="display:none" title="Load existing Canvas rubric">&#9660; Canvas</button>
+    <label id="include-ai-label" style="display:flex;align-items:center;gap:.35rem;font-size:.78rem;color:var(--gray-700);white-space:nowrap;cursor:pointer;user-select:none">
+      <input type="checkbox" id="include-ai" checked style="accent-color:var(--blue)">
+      AI feedback
+    </label>
+    <button class="btn btn-primary btn-sm" onclick="gradeStudent()" id="grade-btn">Grade &rarr;</button>
+  </div>
+  <div class="ribbon-sep"></div>
+  <button class="btn btn-outline btn-sm" onclick="toggleSessionPanel()">Session &rarr;</button>
+</div>
+
+<!-- ===== MAIN SPLIT (shown after setup) ===== -->
+<div class="main-split" id="grade-section" style="display:none">
+
+  <!-- LEFT: Rubric / Grading -->
+  <div class="panel-rubric">
+    <div id="loading">
+      <div class="spinner"></div>
+      <span id="loading-msg">Fetching site and grading with Claude…</span>
+    </div>
+    <div class="error-box" id="error-box" style="display:none"></div>
+
+    <div id="results" style="display:none">
+      <div class="results-header">
+        <h3 id="results-url"></h3>
+        <span class="score-pill" id="score-pill"></span>
+      </div>
+      <div class="pages-fetched" id="pages-fetched"></div>
+
+      <table class="rubric-table" id="rubric-table">
+        <thead>
+          <tr>
+            <th>Criterion</th>
+            <th style="width:110px; text-align:center">Score</th>
+          </tr>
+        </thead>
+        <tbody id="rubric-body"></tbody>
+        <tfoot>
+          <tr>
+            <td style="font-weight:700; padding:.75rem .875rem; border-top:2px solid var(--gray-200)">Total</td>
+            <td class="pts-cell" style="border-top:2px solid var(--gray-200)" id="total-cell"></td>
+          </tr>
+        </tfoot>
+      </table>
+
+      <div class="overall-feedback" id="overall-feedback"></div>
+
+      <details class="validation-panel" id="validation-panel" style="display:none">
+        <summary>
+          W3C Validation Details
+          <span id="val-html-badge" class="val-badge"></span>
+          <span id="val-css-badge"  class="val-badge"></span>
+        </summary>
+        <div class="val-body">
+          <div class="val-col"><h4>HTML</h4><ul class="val-list" id="val-html-list"></ul></div>
+          <div class="val-col"><h4>CSS</h4><ul class="val-list" id="val-css-list"></ul></div>
+        </div>
+      </details>
+
+      <div class="btn-row" style="margin-top:1rem">
+        <button class="btn btn-success btn-sm" id="save-btn" onclick="showStudentPicker()">&#10003; Save to session</button>
+        <button class="btn btn-primary btn-sm" id="approve-btn" style="display:none" onclick="approveAndNext()">&#10003; Approve &amp; Next &#8594;</button>
+      </div>
+
+      <div class="student-picker" id="student-picker">
+        <h4>Who is this student?</h4>
+        <div class="picker-row">
+          <select id="student-select"><option value="">-- Select student --</option></select>
+          <button class="btn btn-primary btn-sm" onclick="confirmSave()">Confirm &amp; Save</button>
+          <button class="btn btn-outline btn-sm" onclick="cancelPicker()">Cancel</button>
+        </div>
+      </div>
+    </div><!-- /#results -->
+  </div><!-- /.panel-rubric -->
+
+  <!-- CENTER: HTML source -->
+  <div class="panel-source">
+    <div class="panel-source-label">HTML</div>
+    <div class="cm-panel-wrap" id="cm-html-wrap"></div>
   </div>
 
-  <!-- ===== STEP 2/3: Grade a student ===== -->
-  <div class="card" id="grade-section">
-    <div class="card-header">
-      <h2><span class="step-num">2</span> Grade a Student</h2>
-    </div>
-    <div class="card-body">
-      <!-- Batch mode: current student header -->
-      <div id="batch-student-header">
-        <div>
-          <div class="batch-name" id="batch-name"></div>
-          <div style="font-size:.78rem; color:var(--gray-500)" id="batch-meta"></div>
-        </div>
-        <div class="batch-nav">
-          <button class="btn btn-outline btn-sm" onclick="navBatch(-1)">&#8592; Prev</button>
-          <button class="btn btn-outline btn-sm" onclick="navBatch(1)">Next &#8594;</button>
-        </div>
-      </div>
-
-      <div class="url-row">
-        <div>
-          <label>Student Website URL</label>
-          <input type="url" id="student-url" placeholder="https://student.github.io/project/">
-        </div>
-        <a id="open-page-btn" href="#" target="_blank" class="btn btn-outline" title="Open student page" style="display:none">&#8599;</a>
-        <button class="btn btn-primary" onclick="gradeStudent()" id="grade-btn">Grade &rarr;</button>
-        <button class="btn btn-outline" id="load-canvas-btn" onclick="loadCanvasExistingGrade()" style="display:none" title="Load existing Canvas rubric scores without an AI call">&#9660; Load from Canvas</button>
-      </div>
-
-      <div id="loading">
-        <div class="spinner"></div>
-        <span id="loading-msg">Fetching site and grading with Claude…</span>
-      </div>
-
-      <div class="error-box" id="error-box" style="display:none"></div>
-
-      <!-- Results -->
-      <div id="results">
-        <div class="results-header">
-          <h3 id="results-url"></h3>
-          <span class="score-pill" id="score-pill"></span>
-        </div>
-
-        <div class="pages-fetched" id="pages-fetched"></div>
-
-        <table class="rubric-table" id="rubric-table">
-          <thead>
-            <tr>
-              <th>Criterion</th>
-              <th style="width:110px; text-align:center">Score</th>
-            </tr>
-          </thead>
-          <tbody id="rubric-body"></tbody>
-          <tfoot>
-            <tr>
-              <td style="font-weight:700; padding:.75rem .875rem; border-top: 2px solid var(--gray-200)">Total</td>
-              <td class="pts-cell" style="border-top: 2px solid var(--gray-200)" id="total-cell"></td>
-            </tr>
-          </tfoot>
-        </table>
-
-        <div class="overall-feedback" id="overall-feedback"></div>
-
-        <details class="validation-panel" id="validation-panel" style="display:none">
-          <summary>
-            W3C Validation Details
-            <span id="val-html-badge" class="val-badge"></span>
-            <span id="val-css-badge"  class="val-badge"></span>
-          </summary>
-          <div class="val-body">
-            <div class="val-col">
-              <h4>HTML</h4>
-              <ul class="val-list" id="val-html-list"></ul>
-            </div>
-            <div class="val-col">
-              <h4>CSS</h4>
-              <ul class="val-list" id="val-css-list"></ul>
-            </div>
-          </div>
-        </details>
-
-        <details class="source-panel" id="source-panel" style="display:none">
-          <summary>Source Code</summary>
-          <div class="source-tabs">
-            <button class="src-tab active" id="src-tab-html" onclick="switchSourceTab('html')">HTML</button>
-            <button class="src-tab" id="src-tab-css" onclick="switchSourceTab('css')">CSS</button>
-          </div>
-          <div id="cm-html-wrap"></div>
-          <div id="cm-css-wrap" style="display:none"></div>
-        </details>
-
-        <div class="btn-row" style="margin-top:1rem">
-          <button class="btn btn-success btn-sm" id="save-btn" onclick="showStudentPicker()">
-            &#10003; Save to session
-          </button>
-          <button class="btn btn-primary btn-sm" id="approve-btn" style="display:none" onclick="approveAndNext()">
-            &#10003; Approve &amp; Next &#8594;
-          </button>
-        </div>
-
-        <!-- Student picker — shown after clicking Save -->
-        <div class="student-picker" id="student-picker">
-          <h4>Who is this student?</h4>
-          <div class="picker-row">
-            <select id="student-select">
-              <option value="">-- Select student --</option>
-            </select>
-            <button class="btn btn-primary btn-sm" onclick="confirmSave()">Confirm &amp; Save</button>
-            <button class="btn btn-outline btn-sm" onclick="cancelPicker()">Cancel</button>
-          </div>
-        </div>
-      </div>
-    </div>
+  <!-- RIGHT: CSS source -->
+  <div class="panel-source">
+    <div class="panel-source-label">CSS</div>
+    <div class="cm-panel-wrap" id="cm-css-wrap"></div>
   </div>
 
-  <!-- ===== STEP 3: Session log & export ===== -->
+</div><!-- /.main-split -->
+
+<!-- ===== SESSION LOG (shown on demand) ===== -->
+<div class="session-wrapper" id="session-wrapper" style="display:none">
   <div class="card" id="session-section">
     <div class="card-header">
-      <h2><span class="step-num">3</span> Graded This Session</h2>
-      <div style="display:flex; gap:.5rem; flex-wrap:wrap">
+      <h2>Session Log</h2>
+      <div style="display:flex; gap:.5rem; flex-wrap:wrap; align-items:center">
         <button class="btn btn-outline btn-sm" onclick="saveSession()">&#128190; Save Session</button>
         <button class="btn btn-outline btn-sm" onclick="exportCSV()">&#8595; Detailed CSV</button>
         <button class="btn btn-success btn-sm" id="canvas-export-btn" onclick="exportCanvasCSV()" style="display:none">&#8595; Score CSV</button>
         <button class="btn btn-primary btn-sm" id="canvas-push-btn" onclick="pushToCanvas()" style="display:none">&#9650; Push to Canvas SpeedGrader</button>
+        <button class="btn btn-outline btn-sm" onclick="toggleSessionPanel()">&#10005; Close</button>
       </div>
     </div>
     <div class="card-body" style="padding:0">
       <table class="session-table">
         <thead>
-          <tr>
-            <th>Student</th>
-            <th>URL</th>
-            <th>Score</th>
-            <th>%</th>
-            <th>Saved at</th>
-          </tr>
+          <tr><th>Student</th><th>URL</th><th>Score</th><th>%</th><th>Saved at</th></tr>
         </thead>
         <tbody id="session-body"></tbody>
       </table>
@@ -909,8 +1013,7 @@
       </div>
     </div>
   </div>
-
-</div><!-- /container -->
+</div><!-- /session-wrapper -->
 
 <script>
   // ---------- State ----------
@@ -978,33 +1081,60 @@
     const desc   = document.getElementById('assignment-description').value.trim();
     const rubric = document.getElementById('rubric').value.trim();
     const crawl  = document.getElementById('crawl-pages').checked;
+    const usingCanvasRubric = document.getElementById('rubric-canvas-view').style.display !== 'none';
 
-    if (!apiKey) return alert('Please enter your Anthropic API key.');
     if (!desc)   return alert('Please enter an assignment description.');
-    if (!rubric) return alert('Please paste in the rubric.');
 
-    setupData = { api_key: apiKey, assignment_name: name, assignment_description: desc, rubric, crawl };
+    // Determine criteria source
+    let criteria = null;
+    if (usingCanvasRubric && setupCanvasCriteria && setupCanvasCriteria.length) {
+      criteria = setupCanvasCriteria;
+    } else if (!rubric) {
+      return alert('Please provide a rubric — either load it from Canvas or paste it manually.');
+    }
 
-    document.getElementById('setup-form-body').style.display = 'none';
-    const badge = document.getElementById('assignment-badge');
-    badge.style.display = 'block';
-    document.getElementById('badge-name').textContent = name || 'Unnamed Assignment';
+    setupData = { api_key: apiKey, assignment_name: name, assignment_description: desc, rubric, criteria, crawl };
 
-    const lines = rubric.split('\n');
-    let criCount = 0;
-    lines.forEach(l => { if (/^\d+\s*pts?$/i.test(l.trim())) criCount++; });
-    const rosterInfo = canvasRoster.length ? ` · ${canvasRoster.length} students loaded` : '';
-    document.getElementById('badge-meta').textContent =
-      `${criCount} criteria detected · Crawl: ${crawl ? 'on' : 'off'}${rosterInfo}`;
+    // Build batch queue from Canvas submissions — include all who submitted (URL or not)
+    if (canvasSubmissions && Object.keys(canvasSubmissions).length) {
+      const entries = Object.entries(canvasSubmissions)
+        .filter(([, s]) => s.workflow_state !== 'unsubmitted')
+        .map(([uid, s]) => ({
+          canvas_id: uid,
+          url: s.submitted_url || '',   // may be empty — user can type it in
+          is_late: s.is_late || false,
+          student: { id: uid, name: s.user_name || `Student ${uid}` },
+          result: null,
+          approved: false,
+        }));
+      if (entries.length) {
+        entries.sort((a, b) => (a.student.name || '').localeCompare(b.student.name || ''));
+        batchQueue = entries;
+        batchIndex = -1;
+      }
+    }
 
-    document.getElementById('edit-setup-btn').style.display = '';
-    document.getElementById('grade-section').style.display = 'block';
+    // Switch to grading mode
+    document.getElementById('setup-wrapper').style.display = 'none';
+    document.getElementById('ribbon').style.display = 'flex';
+    document.getElementById('grade-section').style.display = 'grid';
+
+    // Assignment chip in header
+    const chip = document.getElementById('assignment-chip');
+    chip.style.display = 'flex';
+    document.getElementById('header-assignment-name').textContent = name || 'Assignment';
+
+    if (batchQueue.length) renderStudentRail();
   }
 
   function editSetup() {
+    document.getElementById('setup-wrapper').style.display = '';
     document.getElementById('setup-form-body').style.display = 'block';
     document.getElementById('assignment-badge').style.display = 'none';
-    document.getElementById('edit-setup-btn').style.display = 'none';
+    document.getElementById('ribbon').style.display = 'none';
+    document.getElementById('grade-section').style.display = 'none';
+    document.getElementById('assignment-chip').style.display = 'none';
+    window.scrollTo(0, 0);
   }
 
   function loadDemo() {
@@ -1063,6 +1193,15 @@ This area will be used by the assessor to leave comments related to this criteri
     const url = document.getElementById('student-url').value.trim();
     if (!url) return alert('Enter a student URL.');
 
+    const includeAi = document.getElementById('include-ai').checked;
+    if (includeAi && !setupData.api_key) {
+      return alert('An Anthropic API key is required for AI feedback. Uncheck "AI feedback" to grade manually, or add your API key in Assignment Setup.');
+    }
+
+    document.getElementById('loading-msg').textContent = includeAi
+      ? 'Fetching site and grading with Claude…'
+      : 'Fetching site and running W3C validation…';
+
     setLoading(true);
     hideResults();
     hideError();
@@ -1071,7 +1210,7 @@ This area will be used by the assessor to leave comments related to this criteri
       const res = await fetch('/api/grade', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...setupData, url }),
+        body: JSON.stringify({ ...setupData, url, include_ai: includeAi }),
       });
       const data = await res.json();
 
@@ -1157,7 +1296,7 @@ This area will be used by the assessor to leave comments related to this criteri
   let cmHtml = null, cmCss = null;
 
   function initSourceEditors() {
-    if (cmHtml) return; // already created
+    if (cmHtml) return;
     const opts = {
       lineNumbers: true,
       readOnly: true,
@@ -1166,8 +1305,9 @@ This area will be used by the assessor to leave comments related to this criteri
     };
     cmHtml = CodeMirror(document.getElementById('cm-html-wrap'), { ...opts, mode: 'htmlmixed' });
     cmCss  = CodeMirror(document.getElementById('cm-css-wrap'),  { ...opts, mode: 'css' });
-    cmHtml.setSize(null, 380);
-    cmCss.setSize(null, 380);
+    // Height is driven by CSS (cm-panel-wrap flex:1 → .CodeMirror height:100%)
+    cmHtml.setSize('100%', '100%');
+    cmCss.setSize('100%', '100%');
   }
 
   function setVnuMarkers(cm, errors) {
@@ -1186,49 +1326,21 @@ This area will be used by the assessor to leave comments related to this criteri
   }
 
   function renderSource(source, validation) {
-    const panel = document.getElementById('source-panel');
-    if (!source || (!source.html && !source.css)) {
-      panel.style.display = 'none';
-      return;
-    }
-    panel.style.display = '';
-
     initSourceEditors();
 
-    cmHtml.setValue(source.html || '');
-    cmCss.setValue(source.css || '');
+    cmHtml.setValue((source && source.html) || '');
+    cmCss.setValue((source && source.css) || '');
 
     if (validation) {
       setVnuMarkers(cmHtml, [...(validation.html_errors || []), ...(validation.html_warnings || [])]);
       setVnuMarkers(cmCss,  [...(validation.css_errors  || []), ...(validation.css_warnings  || [])]);
+    } else {
+      if (cmHtml) { cmHtml.clearGutter('cm-errors'); cmHtml.eachLine(lh => cmHtml.removeLineClass(lh, 'background', 'cm-error-line')); }
+      if (cmCss)  { cmCss.clearGutter('cm-errors');  cmCss.eachLine(lh => cmCss.removeLineClass(lh, 'background', 'cm-error-line')); }
     }
 
-    // Refresh layout after potential hidden→visible transition
-    setTimeout(() => {
-      if (document.getElementById('source-panel').open) {
-        cmHtml.refresh();
-        cmCss.refresh();
-      }
-    }, 50);
+    setTimeout(() => { if (cmHtml) cmHtml.refresh(); if (cmCss) cmCss.refresh(); }, 30);
   }
-
-  function switchSourceTab(tab) {
-    document.getElementById('cm-html-wrap').style.display = tab === 'html' ? '' : 'none';
-    document.getElementById('cm-css-wrap').style.display  = tab === 'css'  ? '' : 'none';
-    document.getElementById('src-tab-html').classList.toggle('active', tab === 'html');
-    document.getElementById('src-tab-css').classList.toggle('active', tab === 'css');
-    // Refresh the now-visible editor so it renders correctly
-    if (tab === 'html' && cmHtml) cmHtml.refresh();
-    if (tab === 'css'  && cmCss)  cmCss.refresh();
-  }
-
-  // Refresh CodeMirror when the details panel is opened
-  document.addEventListener('toggle', e => {
-    if (e.target && e.target.id === 'source-panel' && e.target.open) {
-      if (cmHtml) cmHtml.refresh();
-      if (cmCss)  cmCss.refresh();
-    }
-  }, true);
 
   function renderResults(url, data) {
     const { result, pages_fetched, validation, source } = data;
@@ -1284,7 +1396,12 @@ This area will be used by the assessor to leave comments related to this criteri
 
     // Overall feedback
     const fb = document.getElementById('overall-feedback');
-    fb.innerHTML = `<strong>Overall feedback</strong>${escHtml(result.overall_feedback || '')}`;
+    if (result.overall_feedback) {
+      fb.innerHTML = `<strong>Overall feedback</strong>${escHtml(result.overall_feedback)}`;
+      fb.style.display = '';
+    } else {
+      fb.style.display = 'none';
+    }
 
     renderValidation(validation);
     renderSource(source, validation);
@@ -1479,12 +1596,128 @@ This area will be used by the assessor to leave comments related to this criteri
   let criterionMap = {};        // {our_criterion_name: canvas_criterion_id}
   let canvasSubmissions = {};   // {canvas_user_id: {graded, score, rubric_assessed}}
 
-  function toggleCanvasAPI() {
-    const toggle = document.getElementById('canvas-api-toggle');
-    const body   = document.getElementById('canvas-api-body');
-    const open   = body.style.display === 'block';
-    body.style.display = open ? 'none' : 'block';
-    toggle.classList.toggle('open', !open);
+  // ---------- Canvas: load assignments + auto-fill setup ----------
+  let setupCanvasCriteria = null;  // [{name, max_points}] from the selected assignment
+
+  async function loadAssignments() {
+    const token     = document.getElementById('canvas-token').value.trim();
+    const course_id = document.getElementById('canvas-course-id').value.trim();
+    if (!token || !course_id) return alert('Enter your Canvas API token and Course ID first.');
+
+    const btn      = document.getElementById('load-assignments-btn');
+    const statusEl = document.getElementById('canvas-load-status');
+    btn.disabled = true;
+    btn.textContent = 'Loading…';
+    statusEl.innerHTML = '';
+
+    try {
+      const res = await fetch('/api/canvas/assignments', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token, course_id }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        statusEl.innerHTML = `<span style="color:var(--red)">${escHtml(data.error)}</span>`;
+        return;
+      }
+
+      const select = document.getElementById('canvas-assignment-dropdown');
+      select.innerHTML = '<option value="">-- Select an assignment --</option>';
+      data.assignments.forEach(a => {
+        const opt = document.createElement('option');
+        opt.value = a.id;
+        const due = a.due_at ? ` — due ${new Date(a.due_at).toLocaleDateString()}` : '';
+        const rubricFlag = a.has_rubric ? ' ✓' : '';
+        opt.textContent = `${a.name}${rubricFlag}${due}`;
+        opt.dataset.name = a.name;
+        select.appendChild(opt);
+      });
+
+      document.getElementById('canvas-assignment-row').style.display = '';
+      statusEl.innerHTML = `<span style="color:var(--green)">✓ ${data.assignments.length} assignments — select one below</span>`;
+    } catch (err) {
+      statusEl.innerHTML = `<span style="color:var(--red)">Network error: ${escHtml(err.message)}</span>`;
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Load Assignments →';
+    }
+  }
+
+  async function selectAssignment(id) {
+    if (!id) return;
+    const token     = document.getElementById('canvas-token').value.trim();
+    const course_id = document.getElementById('canvas-course-id').value.trim();
+    const statusEl  = document.getElementById('canvas-load-status');
+    statusEl.innerHTML = '<em style="color:var(--gray-500)">Loading assignment details…</em>';
+
+    const res = await fetch('/api/canvas/fetch-rubric', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token, course_id, assignment_id: id }),
+    });
+    const data = await res.json();
+
+    if (!res.ok) {
+      statusEl.innerHTML = `<span style="color:var(--red)">${escHtml(data.error)}</span>`;
+      return;
+    }
+
+    // Set canvas global state
+    canvasConfig      = { token, course_id, assignment_id: id };
+    canvasCriteria    = data.criteria;
+    canvasSubmissions = data.submissions || {};
+    // Direct 1:1 map — names come straight from Canvas
+    criterionMap = {};
+    canvasCriteria.forEach(cc => { criterionMap[cc.description] = cc.id; });
+
+    // Auto-fill name
+    const opt = document.querySelector(`#canvas-assignment-dropdown option[value="${id}"]`);
+    if (opt && opt.dataset.name) document.getElementById('assignment-name').value = opt.dataset.name;
+
+    // Auto-fill description
+    if (data.description) document.getElementById('assignment-description').value = data.description;
+
+    // Show criteria table
+    setupCanvasCriteria = data.criteria.map(c => ({ name: c.description, max_points: c.points }));
+    showRubricPreview(setupCanvasCriteria);
+
+    // Status summary
+    const allSubs       = Object.values(canvasSubmissions);
+    const withUrl       = allSubs.filter(s => s.submitted_url).length;
+    const submitted     = allSubs.filter(s => s.workflow_state !== 'unsubmitted').length;
+    const total         = allSubs.length;
+    const alreadyGraded = allSubs.filter(s => s.graded).length;
+    const urlNote = withUrl < submitted
+      ? ` · <span style="color:var(--yellow)">⚠ only ${withUrl}/${submitted} submissions have a URL — others need manual entry</span>`
+      : ` · ${withUrl} with URL`;
+    let info = `✓ "${escHtml(data.assignment_name)}" · ${data.criteria.length} criteria · ${submitted}/${total} students submitted${urlNote}`;
+    if (alreadyGraded) info += ` · <span style="color:var(--yellow)">⚠ ${alreadyGraded} already graded in Canvas</span>`;
+    statusEl.innerHTML = `<span style="color:var(--green)">${info}</span>`;
+
+    // Enable SpeedGrader push now that we're connected
+    document.getElementById('canvas-push-btn').style.display = '';
+  }
+
+  function showRubricPreview(criteria) {
+    const tbody = document.getElementById('rubric-preview-tbody');
+    tbody.innerHTML = '';
+    criteria.forEach(c => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td>${escHtml(c.name)}</td><td>${c.max_points} pts</td>`;
+      tbody.appendChild(tr);
+    });
+    document.getElementById('rubric-canvas-view').style.display = '';
+    document.getElementById('rubric-manual-view').style.display = 'none';
+  }
+
+  function switchToRubricText() {
+    if (setupCanvasCriteria && setupCanvasCriteria.length) {
+      document.getElementById('rubric').value =
+        setupCanvasCriteria.map(c => `${c.name}\n${c.max_points} pts`).join('\n\n');
+    }
+    document.getElementById('rubric-canvas-view').style.display = 'none';
+    document.getElementById('rubric-manual-view').style.display = '';
   }
 
   function normalize(s) {
@@ -1530,75 +1763,6 @@ This area will be used by the assessor to leave comments related to this criteri
     });
 
     return map;
-  }
-
-  async function connectToCanvas() {
-    const token       = document.getElementById('canvas-token').value.trim();
-    const course_id   = document.getElementById('canvas-course-id').value.trim();
-    const assignment_id = document.getElementById('canvas-assignment-id').value.trim();
-
-    if (!token || !course_id || !assignment_id)
-      return alert('Enter your Canvas API token, Course ID, and Assignment ID.');
-
-    const statusEl = document.getElementById('canvas-connect-status');
-    statusEl.innerHTML = '<em style="color:var(--gray-500)">Connecting to Canvas…</em>';
-    document.getElementById('canvas-connect-btn').disabled = true;
-
-    const res = await fetch('/api/canvas/fetch-rubric', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ token, course_id, assignment_id }),
-    });
-    const data = await res.json();
-    document.getElementById('canvas-connect-btn').disabled = false;
-
-    if (!res.ok) {
-      statusEl.innerHTML = `<span style="color:var(--red)">${escHtml(data.error)}</span>`;
-      return;
-    }
-
-    canvasConfig      = { token, course_id, assignment_id };
-    canvasCriteria    = data.criteria;
-    canvasSubmissions = data.submissions || {};
-
-    // Build criterion map using parsed rubric (if setup is already saved, use its rubric)
-    const rubricText = document.getElementById('rubric').value;
-    let ourCriteria = [];
-    if (rubricText) {
-      // Quick client-side count — full parse happens on server; use canvas criteria as reference
-      ourCriteria = canvasCriteria.map(cc => ({ name: cc.description })); // fallback
-    }
-
-    // We'll do the real matching when grading starts (we have parsed criteria from server then)
-    // For now, show a preview using canvas criterion descriptions mapped to themselves
-    criterionMap = {};
-    canvasCriteria.forEach(cc => { criterionMap[cc.description] = cc.id; });
-
-    const alreadyGraded = Object.values(canvasSubmissions).filter(s => s.graded).length;
-    const gradedNote = alreadyGraded > 0
-      ? ` · <span style="color:var(--yellow)">⚠ ${alreadyGraded} already graded in Canvas</span>`
-      : ` · <span style="color:var(--green)">0 graded yet</span>`;
-    statusEl.innerHTML = `<span style="color:var(--green);font-weight:600">✓ Connected — "${escHtml(data.assignment_name)}" · ${canvasCriteria.length} criteria${gradedNote}</span>`;
-
-    // Re-render rail now that we have submission states
-    if (batchQueue.length) renderStudentRail();
-
-    // Show match preview table
-    const preview = document.getElementById('canvas-match-preview');
-    const tbody   = document.getElementById('canvas-match-body');
-    tbody.innerHTML = '';
-    canvasCriteria.forEach(cc => {
-      const tr = document.createElement('tr');
-      tr.innerHTML = `
-        <td>${escHtml(cc.description)}</td>
-        <td>${escHtml(cc.description)}</td>
-        <td>${cc.points}</td>
-        <td class="match-ok">&#10003;</td>
-      `;
-      tbody.appendChild(tr);
-    });
-    preview.style.display = 'block';
-    document.getElementById('canvas-push-btn').style.display = '';
   }
 
   // Called after grading to refine criterion map using actual parsed criteria names
@@ -1675,79 +1839,6 @@ This area will be used by the assessor to leave comments related to this criteri
   // ---------- Batch mode ----------
   let batchQueue = [];   // [{canvas_id, url, is_late, student, result, approved}]
   let batchIndex = -1;
-
-  async function handleSubmissionsFiles(input) {
-    const files = Array.from(input.files);
-    if (!files.length) return;
-
-    const statusEl = document.getElementById('submissions-status');
-    statusEl.textContent = `Parsing ${files.length} files…`;
-    statusEl.className = 'canvas-status';
-
-    const entries = [];
-    for (const file of files) {
-      const text = await file.text();
-      const basename = file.name;
-
-      // Parse canvas_id and late flag from filename
-      // Format: lastnamefirstname_CANVASID[_late]_link.html
-      const parts = basename.replace(/\.html$/i, '').split('_');
-      let canvas_id = null;
-      let is_late = false;
-      for (let i = 0; i < parts.length; i++) {
-        if (/^\d{5,}$/.test(parts[i])) {
-          canvas_id = parts[i];
-          is_late = parts.slice(i + 1).some(p => p.toLowerCase() === 'late');
-          break;
-        }
-      }
-      if (!canvas_id) continue;
-
-      // Extract URL — prefer <a href>, fallback to meta refresh
-      const parser = new DOMParser();
-      const doc = parser.parseFromString(text, 'text/html');
-      let url = null;
-      const a = doc.querySelector('a[href]');
-      if (a) url = a.getAttribute('href').replace(/#$/, '').trim();
-      if (!url) {
-        const meta = doc.querySelector('meta[http-equiv="Refresh"]');
-        if (meta) {
-          const m = (meta.getAttribute('content') || '').match(/url=(.+)/i);
-          if (m) url = m[1].replace(/#$/, '').trim();
-        }
-      }
-      if (!url) continue;
-
-      // Match to Canvas roster by canvas_id
-      const student = canvasRoster.find(s => s.id === canvas_id) || null;
-
-      entries.push({ canvas_id, url, is_late, student, result: null, approved: false });
-    }
-
-    if (!entries.length) {
-      statusEl.textContent = 'No valid submissions found.';
-      statusEl.className = 'canvas-status err';
-      return;
-    }
-
-    // Sort by student name (roster order) or filename
-    entries.sort((a, b) => {
-      const na = a.student?.name || a.canvas_id;
-      const nb = b.student?.name || b.canvas_id;
-      return na.localeCompare(nb);
-    });
-
-    batchQueue = entries;
-    batchIndex = -1;
-
-    const matched = entries.filter(e => e.student).length;
-    statusEl.textContent = `✓ ${entries.length} submissions · ${matched} matched to roster`;
-    statusEl.className = 'canvas-status ok';
-
-    renderStudentRail();
-    document.getElementById('student-rail-card').style.display = 'block';
-    document.getElementById('grade-section').style.display = 'block';
-  }
 
   function getCanvasSubmission(entry) {
     return entry.canvas_id ? (canvasSubmissions[entry.canvas_id] || null) : null;
@@ -1886,7 +1977,7 @@ This area will be used by the assessor to leave comments related to this criteri
   function saveSession() {
     if (!sessionGrades.length && !setupData) return alert('Nothing to save yet.');
     const snapshot = {
-      version: 1,
+      version: 2,
       saved_at: new Date().toISOString(),
       setupData: setupData ? { ...setupData, api_key: undefined } : null,
       sessionGrades,
@@ -1931,21 +2022,22 @@ This area will be used by the assessor to leave comments related to this criteri
     batchIndex        = snapshot.batchIndex ?? -1;
 
     if (setupData) {
-      // Re-populate form fields
+      // Re-populate form fields (in case user wants to edit)
       document.getElementById('assignment-name').value        = setupData.assignment_name || '';
       document.getElementById('assignment-description').value = setupData.assignment_description || '';
       document.getElementById('rubric').value                 = setupData.rubric || '';
       document.getElementById('crawl-pages').checked          = setupData.crawl || false;
+      if (setupData.criteria && setupData.criteria.length) {
+        setupCanvasCriteria = setupData.criteria;
+        showRubricPreview(setupCanvasCriteria);
+      }
 
-      // Show badge, hide form
-      document.getElementById('setup-form-body').style.display = 'none';
-      document.getElementById('assignment-badge').style.display = 'block';
-      document.getElementById('edit-setup-btn').style.display = '';
-      document.getElementById('badge-name').textContent = setupData.assignment_name || 'Unnamed Assignment';
-      const rosterInfo = canvasRoster.length ? ` · ${canvasRoster.length} students loaded` : '';
-      document.getElementById('badge-meta').textContent =
-        `Resumed session · ${sessionGrades.length} graded${rosterInfo}`;
-      document.getElementById('grade-section').style.display = 'block';
+      // Switch to grading mode
+      document.getElementById('setup-wrapper').style.display = 'none';
+      document.getElementById('ribbon').style.display = 'flex';
+      document.getElementById('grade-section').style.display = 'grid';
+      document.getElementById('assignment-chip').style.display = 'flex';
+      document.getElementById('header-assignment-name').textContent = setupData.assignment_name || 'Assignment';
     }
 
     // Re-populate student picker dropdown
@@ -1961,37 +2053,27 @@ This area will be used by the assessor to leave comments related to this criteri
       document.getElementById('canvas-export-btn').style.display = '';
     }
 
-    // Restore Canvas API partial config (course/assignment IDs, not token)
+    // Restore Canvas partial config (course ID — token must be re-entered)
     if (snapshot.canvasConfigPartial) {
-      document.getElementById('canvas-course-id').value   = snapshot.canvasConfigPartial.course_id || '';
-      document.getElementById('canvas-assignment-id').value = snapshot.canvasConfigPartial.assignment_id || '';
-      // Open the Canvas API section so they know to re-enter the token
-      const body = document.getElementById('canvas-api-body');
-      body.style.display = 'block';
-      document.getElementById('canvas-api-toggle').classList.add('open');
-      document.getElementById('canvas-connect-status').innerHTML =
-        '<span style="color:var(--yellow);font-weight:600">⚠ Re-enter your Canvas API token and click Connect to enable SpeedGrader push.</span>';
+      document.getElementById('canvas-course-id').value = snapshot.canvasConfigPartial.course_id || '';
+      document.getElementById('canvas-load-status').innerHTML =
+        '<span style="color:var(--yellow);font-weight:600">⚠ Resumed session — re-enter Canvas token and load assignments to re-enable SpeedGrader push.</span>';
     }
 
-    // Show Canvas push button if criteria available
+    // Show Canvas push button if criteria map available
     if (canvasCriteria.length) {
       document.getElementById('canvas-push-btn').style.display = '';
-      document.getElementById('canvas-match-preview').style.display = 'block';
-      refineCriterionMap(Object.keys(criterionMap).map(name => ({ name })));
     }
 
     // Restore batch queue
     if (batchQueue.length) {
       renderStudentRail();
-      document.getElementById('student-rail-card').style.display = 'block';
-      document.getElementById('grade-section').style.display = 'block';
       if (batchIndex >= 0) loadBatchStudent(batchIndex);
     }
 
     // Render session table
     if (sessionGrades.length) {
       refreshSessionTable();
-      document.getElementById('session-section').style.display = 'block';
     }
 
     // Hide resume banner
@@ -2005,7 +2087,12 @@ This area will be used by the assessor to leave comments related to this criteri
   }
   function hideResults() {
     document.getElementById('results').style.display = 'none';
-    document.getElementById('source-panel').style.display = 'none';
+  }
+
+  function toggleSessionPanel() {
+    const w = document.getElementById('session-wrapper');
+    w.style.display = w.style.display === 'none' ? '' : 'none';
+    if (w.style.display !== 'none') w.scrollIntoView({ behavior: 'smooth' });
   }
   function showError(msg) {
     const el = document.getElementById('error-box');
